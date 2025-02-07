@@ -1,6 +1,10 @@
-# 1source-api
+# console-app
 
-Examples and utilities for accessing the 1Source REST API. You can find out more about 1Source at [https://equilend.com](https://equilend.com). Access credentials are needed for most examples. Please contact <a name="1source_help" href="mailto:1source_help@equilend.com">1Source Help</a> for assistance.
+Interactive command line ledger browser
+
+java -jar ./target/console-app-0.0.1-SNAPSHOT.jar
+
+Type ? or help at any prompt
 
 ## Requirements
 
