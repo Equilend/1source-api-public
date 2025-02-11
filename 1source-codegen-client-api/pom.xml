@@ -221,7 +221,7 @@
     <repository>
       <id>github</id>
       <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/Equilend/1source-api-public/1source-codegen-client-api</url>
+      <url>https://maven.pkg.github.com/Equilend/1source-api-public</url>
     </repository>
   </distributionManagement>
     
