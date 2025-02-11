@@ -35,6 +35,7 @@ import com.os.client.model.LedgerResponse;
 import com.os.client.model.TradeAgreement;
 
 public class AgreementsApi {
+	
     private ApiClient apiClient;
     private Map<String, String> headers;
 
