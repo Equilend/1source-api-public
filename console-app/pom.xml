@@ -28,7 +28,7 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -44,6 +44,12 @@
 		<dependency>
 			<groupId>com.os</groupId>
 			<artifactId>1source-api-client</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.os</groupId>
+			<artifactId>1source-api-client-adapters</artifactId>
 			<version>1.2.1</version>
 		</dependency>
 

@@ -15,7 +15,6 @@ import com.os.client.model.AnyOfLoanDeclineErrorResponseErrorsItems;
 import com.os.client.model.BenchmarkCd;
 import com.os.client.model.Collateral;
 import com.os.client.model.CollateralType;
-import com.os.client.model.CurrencyCd;
 import com.os.client.model.DelegationAuthorization;
 import com.os.client.model.DelegationAuthorizationType;
 import com.os.client.model.DelegationProposal;
@@ -29,7 +28,6 @@ import com.os.client.model.Loan;
 import com.os.client.model.LoanCancelErrorReason;
 import com.os.client.model.LoanCancelErrorResponse;
 import com.os.client.model.LoanDeclineErrorReason;
-import com.os.client.model.LoanDeclineErrorReasonFieldCollateralCurrency;
 import com.os.client.model.LoanDeclineErrorReasonFieldQuantity;
 import com.os.client.model.LoanDeclineErrorResponse;
 import com.os.client.model.LoanProposal;
@@ -446,13 +444,13 @@ public class PayloadUtil {
 		
 		LoanDeclineErrorReasonFieldQuantity quantityError = new LoanDeclineErrorReasonFieldQuantity();
 		quantityError.setField(LoanDeclineErrorReasonFieldQuantity.FieldEnum.QUANTITY);
-		quantityError.setExpectedValue(111111);;
+		quantityError.setExpectedValue(111111);
 		errors.add(quantityError);
 
-		LoanDeclineErrorReasonFieldCollateralCurrency collateralCurrencyError = new LoanDeclineErrorReasonFieldCollateralCurrency();
-		collateralCurrencyError.setField(LoanDeclineErrorReasonFieldCollateralCurrency.FieldEnum.COLLATERAL_CURRENCY);
-		collateralCurrencyError.setExpectedValue(CurrencyCd.CAD);
-		errors.add(collateralCurrencyError);
+//		LoanDeclineErrorReasonFieldCollateralCurrency collateralCurrencyError = new LoanDeclineErrorReasonFieldCollateralCurrency();
+//		collateralCurrencyError.setField(LoanDeclineErrorReasonFieldCollateralCurrency.FieldEnum.COLLATERAL_CURRENCY);
+//		collateralCurrencyError.setExpectedValue(CurrencyCd.CAD);
+//		errors.add(collateralCurrencyError);
 
 		response.setErrors(errors);
 		

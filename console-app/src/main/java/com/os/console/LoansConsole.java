@@ -235,7 +235,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Declining loan " + loanId + "...");
-						DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loanId);
+						DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loanId, PayloadUtil.createLoanDeclineErrorResponse());
 						Thread taskT = new Thread(declineLoanTask);
 						taskT.run();
 						try {

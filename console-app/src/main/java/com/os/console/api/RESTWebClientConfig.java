@@ -17,6 +17,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.os.client.api.adapters.LoanStatusDeserializer;
+import com.os.client.api.adapters.LocalDateJacksonDeserializer;
+import com.os.client.api.adapters.OffsetDateTimeJacksonDeserializer;
+import com.os.client.api.adapters.RateDeserializer;
 import com.os.client.model.OneOfLoanLoanStatusReason;
 import com.os.client.model.Rate;
 
