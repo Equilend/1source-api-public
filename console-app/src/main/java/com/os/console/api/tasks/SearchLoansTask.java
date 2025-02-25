@@ -51,9 +51,6 @@ public class SearchLoansTask implements Runnable, Comparator<Loan> {
 			printHeader();
 			int rows = 1;
 			for (Loan loan : loans) {
-				if (rows % 15 == 0) {
-					printHeader();
-				}
 
 				String borrower = null;
 				String lender = null;
@@ -72,7 +69,7 @@ public class SearchLoansTask implements Runnable, Comparator<Loan> {
 				if (counterparty != null && !counterparty.getPartyId().equals(borrower) && !counterparty.getPartyId().equals(lender)) {
 					continue;
 				}
-				
+
 				String borrowerSettlement = "NONE";
 				String lenderSettlement = "NONE";
 				List<PartySettlementInstruction> settlementInstructions = loan.getSettlement();
@@ -85,6 +82,10 @@ public class SearchLoansTask implements Runnable, Comparator<Loan> {
 						}
 
 					}
+				}
+
+				if (rows % 15 == 0) {
+					printHeader();
 				}
 
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getLoanId(), 40));
