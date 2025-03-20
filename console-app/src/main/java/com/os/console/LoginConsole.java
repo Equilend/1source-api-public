@@ -69,9 +69,9 @@ public class LoginConsole {
 			try {
 				taskT.join();
 				if (ConsoleConfig.TOKEN != null) {
-					System.out.println("success");
+					System.out.println("...success");
 				} else {
-					System.out.println("invalid username and/or password");
+					System.out.println("...invalid username and/or password");
 					return;
 				}
 			} catch (InterruptedException e) {

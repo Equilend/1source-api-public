@@ -15,6 +15,7 @@ import com.os.client.model.AnyOfLoanDeclineErrorResponseErrorsItems;
 import com.os.client.model.BenchmarkCd;
 import com.os.client.model.Collateral;
 import com.os.client.model.CollateralType;
+import com.os.client.model.CurrencyCd;
 import com.os.client.model.DelegationAuthorization;
 import com.os.client.model.DelegationAuthorizationType;
 import com.os.client.model.DelegationProposal;
@@ -28,7 +29,17 @@ import com.os.client.model.Loan;
 import com.os.client.model.LoanCancelErrorReason;
 import com.os.client.model.LoanCancelErrorResponse;
 import com.os.client.model.LoanDeclineErrorReason;
+import com.os.client.model.LoanDeclineErrorReasonFieldBillingCurrency;
+import com.os.client.model.LoanDeclineErrorReasonFieldCollateralCurrency;
+import com.os.client.model.LoanDeclineErrorReasonFieldCollateralMargin;
+import com.os.client.model.LoanDeclineErrorReasonFieldCollateralType;
+import com.os.client.model.LoanDeclineErrorReasonFieldDividendRate;
 import com.os.client.model.LoanDeclineErrorReasonFieldQuantity;
+import com.os.client.model.LoanDeclineErrorReasonFieldRate;
+import com.os.client.model.LoanDeclineErrorReasonFieldSettlementDate;
+import com.os.client.model.LoanDeclineErrorReasonFieldTermDate;
+import com.os.client.model.LoanDeclineErrorReasonFieldTermType;
+import com.os.client.model.LoanDeclineErrorReasonFieldTradeDate;
 import com.os.client.model.LoanDeclineErrorResponse;
 import com.os.client.model.LoanProposal;
 import com.os.client.model.LoanProposalApproval;
@@ -61,13 +72,13 @@ import com.os.console.api.ConsoleConfig;
 
 public class PayloadUtil {
 
-	public static LoanProposal createLoanProposal(Party borrowerParty, Party lenderParty,
-			PartyRole proposingPartyRole, Instrument instrument) {
+	public static LoanProposal createLoanProposal(Party borrowerParty, Party lenderParty, PartyRole proposingPartyRole,
+			Instrument instrument) {
 
 		Random random = new Random();
 
 		InstrumentUtil instrumentUtil = InstrumentUtil.getInstance();
-		
+
 		LoanProposal loanProposal = new LoanProposal();
 
 		TradeAgreement trade = new TradeAgreement();
@@ -79,14 +90,16 @@ public class PayloadUtil {
 		borrowerTransactingParty.setParty(borrowerParty);
 		transactingParties.add(borrowerTransactingParty);
 
-		borrowerTransactingParty.setInternalReference(PartyRole.BORROWER.equals(proposingPartyRole) ? UUID.randomUUID().toString() : null);
+		borrowerTransactingParty.setInternalReference(
+				PartyRole.BORROWER.equals(proposingPartyRole) ? UUID.randomUUID().toString() : null);
 
 		TransactingParty lenderTransactingParty = new TransactingParty();
 		lenderTransactingParty.setPartyRole(PartyRole.LENDER);
 		lenderTransactingParty.setParty(lenderParty);
 		transactingParties.add(lenderTransactingParty);
 
-		lenderTransactingParty.setInternalReference(PartyRole.LENDER.equals(proposingPartyRole) ? UUID.randomUUID().toString() : null);
+		lenderTransactingParty.setInternalReference(
+				PartyRole.LENDER.equals(proposingPartyRole) ? UUID.randomUUID().toString() : null);
 
 		trade.setTransactingParties(transactingParties);
 
@@ -188,10 +201,10 @@ public class PayloadUtil {
 		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
 
 		proposal.setExecutionVenue(venue);
-		
+
 		proposal.setQuantity(quantity);
 		proposal.setReturnDate(LocalDate.now(ZoneId.of("UTC")));
-		
+
 		LocalDate returnSettlementDate = proposal.getReturnDate().plusDays(1);
 		if (returnSettlementDate.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
 			returnSettlementDate = returnSettlementDate.plusDays(2);
@@ -201,8 +214,8 @@ public class PayloadUtil {
 		proposal.setReturnSettlementDate(returnSettlementDate);
 		proposal.setSettlementType(SettlementType.DVP);
 
-		BigDecimal collateralValue = BigDecimal
-				.valueOf(quantity.doubleValue() * loan.getTrade().getCollateral().getContractPrice().doubleValue() * 1.02);
+		BigDecimal collateralValue = BigDecimal.valueOf(
+				quantity.doubleValue() * loan.getTrade().getCollateral().getContractPrice().doubleValue() * 1.02);
 		collateralValue = collateralValue.setScale(2, java.math.RoundingMode.HALF_UP);
 		proposal.setCollateralValue(collateralValue.doubleValue());
 
@@ -239,7 +252,7 @@ public class PayloadUtil {
 
 		proposal.setQuantity(quantity);
 		proposal.setRecallDate(LocalDate.now(ZoneId.of("UTC")));
-		
+
 		LocalDate recallDueDate = proposal.getRecallDate().plusDays(3);
 		if (recallDueDate.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
 			recallDueDate = recallDueDate.plusDays(2);
@@ -280,16 +293,16 @@ public class PayloadUtil {
 		proposal.setExecutionVenue(venue);
 
 		LocalDate rerateDate = LocalDate.now(ZoneId.of("UTC"));
-		
+
 		if (loan.getTrade().getRate() instanceof FeeRate) {
-			
+
 			FeeRate feeRate = new FeeRate();
-			
+
 			FixedRateDef fixedRateDef = new FixedRateDef();
 			fixedRateDef.setBaseRate(rerate);
 			fixedRateDef.setEffectiveDate(rerateDate);
 			feeRate.setFee(fixedRateDef);
-			
+
 			proposal.setRate(feeRate);
 
 		} else if (loan.getTrade().getRate() instanceof RebateRate) {
@@ -297,19 +310,20 @@ public class PayloadUtil {
 			RebateRate rebateRate = new RebateRate();
 
 			if (((RebateRate) loan.getTrade().getRate()).getRebate() instanceof FixedRate) {
-			
+
 				FixedRate fixedRate = new FixedRate();
 				FixedRateDef fixedRateDef = new FixedRateDef();
 				fixedRateDef.setBaseRate(rerate);
 				fixedRateDef.setEffectiveDate(rerateDate);
 				fixedRate.setFixed(fixedRateDef);
-				
+
 				rebateRate.setRebate(fixedRate);
-				
+
 			} else if (((RebateRate) loan.getTrade().getRate()).getRebate() instanceof FloatingRate) {
-				
-				FloatingRateDef origRate = ((FloatingRate)((RebateRate) loan.getTrade().getRate()).getRebate()).getFloating();
-				
+
+				FloatingRateDef origRate = ((FloatingRate) ((RebateRate) loan.getTrade().getRate()).getRebate())
+						.getFloating();
+
 				FloatingRate floatingRate = new FloatingRate();
 				FloatingRateDef floatingRateDef = new FloatingRateDef();
 				floatingRateDef.setBenchmark(origRate.getBenchmark());
@@ -320,7 +334,7 @@ public class PayloadUtil {
 				floatingRateDef.setSpread(rerate);
 				floatingRateDef.setEffectiveDate(rerateDate);
 				floatingRate.setFloating(floatingRateDef);
-				
+
 				rebateRate.setRebate(floatingRate);
 			}
 
@@ -345,60 +359,63 @@ public class PayloadUtil {
 		return delegationProposal;
 	}
 
-	public static ReturnAcknowledgement createReturnAcknowledgement(AcknowledgementType acknowledgementType, String message) {
-		
+	public static ReturnAcknowledgement createReturnAcknowledgement(AcknowledgementType acknowledgementType,
+			String message) {
+
 		ReturnAcknowledgement returnAcknowledgement = new ReturnAcknowledgement();
-		
+
 		returnAcknowledgement.setAcknowledgementType(acknowledgementType);
 		returnAcknowledgement.setDescription(message);
-		
+
 		return returnAcknowledgement;
 	}
 
-	public static RecallAcknowledgement createRecallAcknowledgement(AcknowledgementType acknowledgementType, String message) {
-		
+	public static RecallAcknowledgement createRecallAcknowledgement(AcknowledgementType acknowledgementType,
+			String message) {
+
 		RecallAcknowledgement recallAcknowledgement = new RecallAcknowledgement();
-		
+
 		recallAcknowledgement.setAcknowledgementType(acknowledgementType);
 		recallAcknowledgement.setDescription(message);
-		
+
 		return recallAcknowledgement;
 	}
 
 	public static LoanSplitProposal createLoanSplitProposal(List<Integer> quantitySplits) {
-		
+
 		LoanSplitProposal loanSplitProposal = new LoanSplitProposal();
-		
+
 		for (Integer quantity : quantitySplits) {
 			LoanSplitProposalLot lot = new LoanSplitProposalLot();
 			lot.setQuantity(quantity);
 			lot.setInternalReference(UUID.randomUUID().toString());
-			
+
 			loanSplitProposal.add(lot);
 		}
-		
+
 		return loanSplitProposal;
 	}
 
 	public static LoanSplitAcknowledgment createLoanSplitProposalApproval(LoanSplit loanSplit) {
-		
+
 		LoanSplitAcknowledgment loanSplitProposalApproval = new LoanSplitAcknowledgment();
-		
+
 		for (LoanSplitLot lot : loanSplit.getSplitLots()) {
 			LoanSplitLotAcknowledge lotApproval = new LoanSplitLotAcknowledge();
 			lotApproval.setLoanId(lot.getLoanId());
 			lotApproval.setInternalReference(UUID.randomUUID().toString());
-			
+
 			loanSplitProposalApproval.add(lotApproval);
 		}
-		
+
 		return loanSplitProposalApproval;
 	}
-	
-	public static SettlementInstructionUpdate createSettlementInstructionUpdate(Loan loan, String dtcParticipantNumber) {
+
+	public static SettlementInstructionUpdate createSettlementInstructionUpdate(Loan loan,
+			String dtcParticipantNumber) {
 
 		SettlementInstructionUpdate settlementInstructionUpdate = null;
-		
+
 		TransactingParties parties = loan.getTrade().getTransactingParties();
 		boolean canAct = false;
 		PartyRole partyRole = null;
@@ -421,39 +438,115 @@ public class PayloadUtil {
 				}
 			}
 		}
-		
+
 		return settlementInstructionUpdate;
 	}
 
 	public static LoanCancelErrorResponse createLoanCancelErrorResponse() {
-		
+
 		LoanCancelErrorResponse response = new LoanCancelErrorResponse();
-		
+
 		response.setReason(LoanCancelErrorReason.NO_RESPONSE);
 
 		return response;
 	}
-	
-	public static LoanDeclineErrorResponse createLoanDeclineErrorResponse() {
-		
+
+	public static LoanDeclineErrorResponse createLoanDeclineErrorResponse(Loan loan) {
+
 		LoanDeclineErrorResponse response = new LoanDeclineErrorResponse();
-		
+
 		response.setReason(LoanDeclineErrorReason.INCORRECT_LOAN_INFO);
-		
+
 		List<AnyOfLoanDeclineErrorResponseErrorsItems> errors = new ArrayList<>();
-		
+
+		LoanDeclineErrorReasonFieldBillingCurrency billingCurrencyError = new LoanDeclineErrorReasonFieldBillingCurrency();
+		billingCurrencyError.setField(LoanDeclineErrorReasonFieldBillingCurrency.FieldEnum.BILLING_CURRENCY);
+		if (CurrencyCd.USD.equals(loan.getTrade().getBillingCurrency())) {
+			billingCurrencyError.setExpectedValue(CurrencyCd.CAD);
+		} else {
+			billingCurrencyError.setExpectedValue(CurrencyCd.USD);			
+		}
+		errors.add(billingCurrencyError);
+
+		LoanDeclineErrorReasonFieldCollateralCurrency collateralCurrencyError = new LoanDeclineErrorReasonFieldCollateralCurrency();
+		collateralCurrencyError.setField(LoanDeclineErrorReasonFieldCollateralCurrency.FieldEnum.COLLATERAL_CURRENCY);
+		if (CurrencyCd.USD.equals(loan.getTrade().getCollateral().getCollateralCurrency())) {
+			collateralCurrencyError.setExpectedValue(CurrencyCd.CAD);
+		} else {
+			collateralCurrencyError.setExpectedValue(CurrencyCd.USD);			
+		}
+		errors.add(collateralCurrencyError);
+
+		LoanDeclineErrorReasonFieldCollateralMargin collateralMarginError = new LoanDeclineErrorReasonFieldCollateralMargin();
+		collateralMarginError.setField(LoanDeclineErrorReasonFieldCollateralMargin.FieldEnum.COLLATERAL_MARGIN);
+		collateralMarginError.setExpectedValue(loan.getTrade().getCollateral().getCollateralMargin().doubleValue() + 1);
+		errors.add(collateralMarginError);
+
+		LoanDeclineErrorReasonFieldCollateralType collateralTypeError = new LoanDeclineErrorReasonFieldCollateralType();
+		collateralTypeError.setField(LoanDeclineErrorReasonFieldCollateralType.FieldEnum.COLLATERAL_TYPE);
+		collateralTypeError.setExpectedValue(CollateralType.NONCASH);
+		errors.add(collateralTypeError);
+
+		LoanDeclineErrorReasonFieldDividendRate dividendRateError = new LoanDeclineErrorReasonFieldDividendRate();
+		dividendRateError.setField(LoanDeclineErrorReasonFieldDividendRate.FieldEnum.DIVIDEND_RATE);
+		dividendRateError.setExpectedValue(loan.getTrade().getDividendRatePct().doubleValue() + 1);
+		errors.add(dividendRateError);
+
 		LoanDeclineErrorReasonFieldQuantity quantityError = new LoanDeclineErrorReasonFieldQuantity();
 		quantityError.setField(LoanDeclineErrorReasonFieldQuantity.FieldEnum.QUANTITY);
-		quantityError.setExpectedValue(111111);
+		quantityError.setExpectedValue(loan.getTrade().getQuantity().intValue() + 100);
 		errors.add(quantityError);
 
-//		LoanDeclineErrorReasonFieldCollateralCurrency collateralCurrencyError = new LoanDeclineErrorReasonFieldCollateralCurrency();
-//		collateralCurrencyError.setField(LoanDeclineErrorReasonFieldCollateralCurrency.FieldEnum.COLLATERAL_CURRENCY);
-//		collateralCurrencyError.setExpectedValue(CurrencyCd.CAD);
-//		errors.add(collateralCurrencyError);
+		LoanDeclineErrorReasonFieldRate rateError = new LoanDeclineErrorReasonFieldRate();
+		rateError.setField(LoanDeclineErrorReasonFieldRate.FieldEnum.RATE_VALUE);
+
+		if (loan.getTrade().getRate() instanceof RebateRate) {
+			RebateRate rebateRate = (RebateRate) loan.getTrade().getRate();
+			
+			if (rebateRate.getRebate() instanceof FloatingRate) {
+				FloatingRate floatingRate = (FloatingRate)rebateRate.getRebate();
+				floatingRate.getFloating().setSpread(floatingRate.getFloating().getSpread().doubleValue() + 1);
+			} else if (rebateRate.getRebate() instanceof FixedRate) {
+				FixedRate fixedRate = (FixedRate)rebateRate.getRebate();
+				fixedRate.getFixed().setBaseRate(fixedRate.getFixed().getBaseRate().doubleValue() + 1);
+			}
+			rateError.setExpectedValue(rebateRate);
+			errors.add(rateError);
+		} else if (loan.getTrade().getRate() instanceof FeeRate) {
+			FeeRate feeRate = (FeeRate)loan.getTrade().getRate();
+			feeRate.getFee().setBaseRate(feeRate.getFee().getBaseRate().doubleValue() + 1);
+			rateError.setExpectedValue(feeRate);
+			errors.add(rateError);
+		}
+
+		LoanDeclineErrorReasonFieldSettlementDate settlementDateError = new LoanDeclineErrorReasonFieldSettlementDate();
+		settlementDateError.setField(LoanDeclineErrorReasonFieldSettlementDate.FieldEnum.SETTLEMENT_DATE);
+		settlementDateError.setExpectedValue(loan.getTrade().getSettlementDate().plusDays(1));
+		errors.add(settlementDateError);
+
+		if (TermType.OPEN.equals(loan.getTrade().getTermType())) {
+			LoanDeclineErrorReasonFieldTermType termTypeError = new LoanDeclineErrorReasonFieldTermType();
+			termTypeError.setField(LoanDeclineErrorReasonFieldTermType.FieldEnum.TERM_TYPE);
+			termTypeError.setExpectedValue(TermType.FIXED);
+			errors.add(termTypeError);
+			
+			LoanDeclineErrorReasonFieldTermDate termDateError = new LoanDeclineErrorReasonFieldTermDate();
+			termDateError.setField(LoanDeclineErrorReasonFieldTermDate.FieldEnum.TERM_DATE);
+			errors.add(termDateError);
+		} else {
+			LoanDeclineErrorReasonFieldTermType termTypeError = new LoanDeclineErrorReasonFieldTermType();
+			termTypeError.setField(LoanDeclineErrorReasonFieldTermType.FieldEnum.TERM_TYPE);
+			termTypeError.setExpectedValue(TermType.OPEN);
+			errors.add(termTypeError);
+		}
+
+		LoanDeclineErrorReasonFieldTradeDate tradeDateError = new LoanDeclineErrorReasonFieldTradeDate();
+		tradeDateError.setField(LoanDeclineErrorReasonFieldTradeDate.FieldEnum.TRADE_DATE);
+		tradeDateError.setExpectedValue(LocalDate.now().plusDays(1));
+		errors.add(tradeDateError);
 
 		response.setErrors(errors);
-		
+
 		return response;
 	}
 }

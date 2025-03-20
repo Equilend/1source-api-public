@@ -235,13 +235,27 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Declining loan " + loanId + "...");
-						DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loanId, PayloadUtil.createLoanDeclineErrorResponse());
-						Thread taskT = new Thread(declineLoanTask);
+						
+						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
 							taskT.join();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
+						}
+
+						if (searchLoanTask.getLoan() != null) {
+
+							DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loanId,
+									PayloadUtil.createLoanDeclineErrorResponse(searchLoanTask.getLoan()));
+							Thread taskD = new Thread(declineLoanTask);
+							taskD.run();
+							try {
+								taskD.join();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
 					} else {
 						System.out.println("Invalid UUID");

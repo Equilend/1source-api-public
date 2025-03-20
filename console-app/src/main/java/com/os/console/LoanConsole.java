@@ -122,7 +122,7 @@ public class LoanConsole extends AbstractConsole {
 			refreshLoan(webClient);
 		} else if (args[0].equals("D")) {
 			System.out.print("Declining loan...");
-			DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loan.getLoanId(), PayloadUtil.createLoanDeclineErrorResponse());
+			DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loan.getLoanId(), PayloadUtil.createLoanDeclineErrorResponse(loan));
 			Thread taskT = new Thread(declineLoanTask);
 			taskT.run();
 			try {
