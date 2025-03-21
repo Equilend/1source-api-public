@@ -8,20 +8,25 @@ Building the API examples requires:
 1. Java 17+
 2. Maven/Gradle
 
-### Maven users
-
-API examples include a dependency on the 1Source Client API library:
+API examples include a dependency on the 1Source Client API libraries:
 
 ```xml
 <dependency>
   <groupId>com.os</groupId>
   <artifactId>1source-api-client</artifactId>
-  <version>1.2.1</version>
+  <version>1.2.1.2</version>
+  <scope>compile</scope>
+</dependency>
+
+<dependency>
+  <groupId>com.os</groupId>
+  <artifactId>1source-api-client-adapters</artifactId>
+  <version>1.2.1.2</version>
   <scope>compile</scope>
 </dependency>
 ```
 
-This library is hosted in the 1Source GitHub Packages repository. To download SNAPSHOT artifacts, enable SNAPSHOTS in the POM of the consuming project or your ~/.m2/settings.xml file. Replace USERNAME with your GitHub username, and TOKEN with your personal access token that has read:packages permission.
+This libraries are hosted in the 1Source GitHub Packages repository. To download SNAPSHOT artifacts, enable SNAPSHOTS in the POM of the consuming project or your ~/.m2/settings.xml file. Replace USERNAME with your GitHub username, and TOKEN with your personal access token that has read:packages permission.
 
 ```xml
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
@@ -67,7 +72,8 @@ This library is hosted in the 1Source GitHub Packages repository. To download SN
 This dependency will be in the build file:
 
 ```groovy
-compile "com.os:1source-api-client:1.2.1"
+compile "com.os:1source-api-client:1.2.1.2"
+compile "com.os:1source-api-client-adapters:1.2.1.2"
 ```
 
 Add the repository to your build.gradle file (Gradle Groovy). Replace USERNAME with your GitHub username, and TOKEN with your personal access token that has read:packages permission.
@@ -89,4 +95,4 @@ Matthew Schoenberg
 
 ## Last Update
 
-Friday, February 7, 2025 08:53:10
+Friday, March 21, 2025 08:53:10
