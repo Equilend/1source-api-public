@@ -55,6 +55,11 @@ import com.os.client.model.PartySettlementInstruction;
 import com.os.client.model.RebateRate;
 import com.os.client.model.RecallAcknowledgement;
 import com.os.client.model.RecallProposal;
+import com.os.client.model.Rerate;
+import com.os.client.model.RerateDeclineErrorReason;
+import com.os.client.model.RerateDeclineErrorReasonFieldType;
+import com.os.client.model.RerateDeclineErrorReasonFieldValue;
+import com.os.client.model.RerateDeclineErrorResponse;
 import com.os.client.model.RerateProposal;
 import com.os.client.model.ReturnAcknowledgement;
 import com.os.client.model.ReturnProposal;
@@ -544,6 +549,41 @@ public class PayloadUtil {
 		tradeDateError.setField(LoanDeclineErrorReasonFieldTradeDate.FieldEnum.TRADE_DATE);
 		tradeDateError.setExpectedValue(LocalDate.now().plusDays(1));
 		errors.add(tradeDateError);
+
+		response.setErrors(errors);
+
+		return response;
+	}
+
+	public static RerateDeclineErrorResponse createRerateDeclineErrorResponse(Rerate rerate) {
+
+		RerateDeclineErrorResponse response = new RerateDeclineErrorResponse();
+
+		response.setReason(RerateDeclineErrorReason.INCORRECT_RERATE_INFO);
+
+		List<RerateDeclineErrorReasonFieldValue> errors = new ArrayList<>();
+
+		RerateDeclineErrorReasonFieldValue rateError = new RerateDeclineErrorReasonFieldValue();
+		rateError.setField(RerateDeclineErrorReasonFieldType.RERATE);
+
+		if (rerate.getRerate() instanceof RebateRate) {
+			RebateRate rebateRate = (RebateRate) rerate.getRerate();
+			
+			if (rebateRate.getRebate() instanceof FloatingRate) {
+				FloatingRate floatingRate = (FloatingRate)rebateRate.getRebate();
+				floatingRate.getFloating().setSpread(floatingRate.getFloating().getSpread().doubleValue() + 1);
+			} else if (rebateRate.getRebate() instanceof FixedRate) {
+				FixedRate fixedRate = (FixedRate)rebateRate.getRebate();
+				fixedRate.getFixed().setBaseRate(fixedRate.getFixed().getBaseRate().doubleValue() + 1);
+			}
+			rateError.setExpectedValue(rebateRate);
+			errors.add(rateError);
+		} else if (rerate.getRerate() instanceof FeeRate) {
+			FeeRate feeRate = (FeeRate)rerate.getRerate();
+			feeRate.getFee().setBaseRate(feeRate.getFee().getBaseRate().doubleValue() + 1);
+			rateError.setExpectedValue(feeRate);
+			errors.add(rateError);
+		}
 
 		response.setErrors(errors);
 

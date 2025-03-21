@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Loan;
+import com.os.client.model.Rerate;
 import com.os.client.model.RerateProposal;
 import com.os.console.api.ConsoleConfig;
 import com.os.console.api.tasks.ApproveRerateTask;
@@ -14,6 +15,7 @@ import com.os.console.api.tasks.DeclineRerateTask;
 import com.os.console.api.tasks.ProposeRerateTask;
 import com.os.console.api.tasks.SearchLoanRerateTask;
 import com.os.console.api.tasks.SearchLoanReratesTask;
+import com.os.console.api.tasks.SearchRerateTask;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.PayloadUtil;
 
@@ -160,14 +162,25 @@ public class LoanReratesConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Declining rerate...");
-						DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, loan.getLoanId(),
-								rerateId);
-						Thread taskS = new Thread(declineRerateTask);
-						taskS.run();
+						SearchRerateTask searchRerateTask = new SearchRerateTask(webClient, rerateId);
+						Thread taskT = new Thread(searchRerateTask);
+						taskT.run();
 						try {
-							taskS.join();
+							taskT.join();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
+						}
+						if (searchRerateTask.getRerate() != null) {
+							Rerate rerate = searchRerateTask.getRerate();
+							System.out.print("Declining rerate...");
+							DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
+							Thread taskS = new Thread(declineRerateTask);
+							taskS.run();
+							try {
+								taskS.join();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
 					} else {
 						System.out.println("Invalid UUID");

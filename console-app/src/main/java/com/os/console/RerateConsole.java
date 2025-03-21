@@ -15,6 +15,7 @@ import com.os.console.api.tasks.DeclineRerateTask;
 import com.os.console.api.tasks.SearchLoanRerateTask;
 import com.os.console.api.tasks.SearchLoanTask;
 import com.os.console.util.ConsoleOutputUtil;
+import com.os.console.util.PayloadUtil;
 
 public class RerateConsole extends AbstractConsole {
 
@@ -105,7 +106,7 @@ public class RerateConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Declining rerate...");
-				DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId());
+				DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
 				Thread taskS = new Thread(declineRerateTask);
 				taskS.run();
 				try {

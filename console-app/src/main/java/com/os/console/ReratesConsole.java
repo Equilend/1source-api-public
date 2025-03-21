@@ -12,6 +12,7 @@ import com.os.console.api.tasks.CancelRerateTask;
 import com.os.console.api.tasks.DeclineRerateTask;
 import com.os.console.api.tasks.SearchRerateTask;
 import com.os.console.api.tasks.SearchReratesTask;
+import com.os.console.util.PayloadUtil;
 
 public class ReratesConsole extends AbstractConsole {
 
@@ -148,7 +149,7 @@ public class ReratesConsole extends AbstractConsole {
 						if (searchRerateTask.getRerate() != null) {
 							Rerate rerate = searchRerateTask.getRerate();
 							System.out.print("Declining rerate...");
-							DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId());
+							DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
 							Thread taskS = new Thread(declineRerateTask);
 							taskS.run();
 							try {
