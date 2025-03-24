@@ -18,10 +18,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.os.client.api.adapters.LoanStatusDeserializer;
+import com.os.client.api.adapters.RerateStatusDeserializer;
 import com.os.client.api.adapters.LocalDateJacksonDeserializer;
 import com.os.client.api.adapters.OffsetDateTimeJacksonDeserializer;
 import com.os.client.api.adapters.RateDeserializer;
 import com.os.client.model.OneOfLoanLoanStatusReason;
+import com.os.client.model.OneOfRerateRerateStatusReason;
 import com.os.client.model.Rate;
 
 import reactor.netty.http.client.HttpClient;
@@ -39,6 +41,7 @@ public class RESTWebClientConfig {
 				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 				.registerModule(new SimpleModule().addDeserializer(Rate.class, new RateDeserializer()))
 				.registerModule(new SimpleModule().addDeserializer(OneOfLoanLoanStatusReason.class, new LoanStatusDeserializer()))
+				.registerModule(new SimpleModule().addDeserializer(OneOfRerateRerateStatusReason.class, new RerateStatusDeserializer()))
 				.registerModule(new SimpleModule().addDeserializer(LocalDate.class, new LocalDateJacksonDeserializer()))
 				.registerModule(new SimpleModule().addDeserializer(OffsetDateTime.class, new OffsetDateTimeJacksonDeserializer()));
 		
