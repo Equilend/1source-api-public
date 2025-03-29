@@ -11,10 +11,11 @@ import com.os.client.model.PartySettlementInstruction;
 public class ConsoleConfig {
 
 	public static AuthToken TOKEN = null;
-    public static Party ACTING_PARTY = null;
-    public static PartyRole ACTING_AS = null;
-    public static PartySettlementInstruction SETTLEMENT_INSTRUCTIONS = null;
-    
+	public static Party ACTING_PARTY = null;
+	public static PartyRole ACTING_AS = null;
+	public static PartySettlementInstruction SETTLEMENT_INSTRUCTIONS = null;
+	public static PartySettlementInstruction COUNTERPARTY_SETTLEMENT_INSTRUCTIONS = null;
+
 	private final String api_uri;
 
 	private final String auth_uri;
@@ -36,12 +37,27 @@ public class ConsoleConfig {
 	private String settlement_custodianBic;
 	private String settlement_custodianAcct;
 
+	private String counterparty_settlement_internalAcctCd;
+	private String counterparty_settlement_settlementBic;
+	private String counterparty_settlement_localAgentBic;
+	private String counterparty_settlement_localAgentName;
+	private String counterparty_settlement_localAgentAcct;
+	private String counterparty_settlement_dtcParticipantNumber;
+	private String counterparty_settlement_custodianName;
+	private String counterparty_settlement_custodianBic;
+	private String counterparty_settlement_custodianAcct;
+
 	@ConstructorBinding
 	public ConsoleConfig(String api_uri, String auth_uri, String auth_client_id, String auth_client_secret,
 			String auth_username, String auth_password, String auth_party, String auth_actAs,
 			String settlement_internalAcctCd, String settlement_settlementBic, String settlement_localAgentBic,
 			String settlement_localAgentName, String settlement_localAgentAcct, String settlement_dtcParticipantNumber,
-			String settlement_custodianName, String settlement_custodianBic, String settlement_custodianAcct) {
+			String settlement_custodianName, String settlement_custodianBic, String settlement_custodianAcct,
+			String counterparty_settlement_internalAcctCd, String counterparty_settlement_settlementBic,
+			String counterparty_settlement_localAgentBic, String counterparty_settlement_localAgentName,
+			String counterparty_settlement_localAgentAcct, String counterparty_settlement_dtcParticipantNumber,
+			String counterparty_settlement_custodianName, String counterparty_settlement_custodianBic,
+			String counterparty_settlement_custodianAcct) {
 		super();
 		this.api_uri = api_uri;
 		this.auth_uri = auth_uri;
@@ -60,6 +76,15 @@ public class ConsoleConfig {
 		this.settlement_custodianName = settlement_custodianName;
 		this.settlement_custodianBic = settlement_custodianBic;
 		this.settlement_custodianAcct = settlement_custodianAcct;
+		this.counterparty_settlement_internalAcctCd = counterparty_settlement_internalAcctCd;
+		this.counterparty_settlement_settlementBic = counterparty_settlement_settlementBic;
+		this.counterparty_settlement_localAgentBic = counterparty_settlement_localAgentBic;
+		this.counterparty_settlement_localAgentName = counterparty_settlement_localAgentName;
+		this.counterparty_settlement_localAgentAcct = counterparty_settlement_localAgentAcct;
+		this.counterparty_settlement_dtcParticipantNumber = counterparty_settlement_dtcParticipantNumber;
+		this.counterparty_settlement_custodianName = counterparty_settlement_custodianName;
+		this.counterparty_settlement_custodianBic = counterparty_settlement_custodianBic;
+		this.counterparty_settlement_custodianAcct = counterparty_settlement_custodianAcct;
 	}
 
 	public String getAuth_username() {
@@ -164,6 +189,78 @@ public class ConsoleConfig {
 
 	public void setSettlement_custodianAcct(String settlement_custodianAcct) {
 		this.settlement_custodianAcct = settlement_custodianAcct;
+	}
+
+	public String getCounterparty_settlement_internalAcctCd() {
+		return counterparty_settlement_internalAcctCd;
+	}
+
+	public void setCounterparty_settlement_internalAcctCd(String counterparty_settlement_internalAcctCd) {
+		this.counterparty_settlement_internalAcctCd = counterparty_settlement_internalAcctCd;
+	}
+
+	public String getCounterparty_settlement_settlementBic() {
+		return counterparty_settlement_settlementBic;
+	}
+
+	public void setCounterparty_settlement_settlementBic(String counterparty_settlement_settlementBic) {
+		this.counterparty_settlement_settlementBic = counterparty_settlement_settlementBic;
+	}
+
+	public String getCounterparty_settlement_localAgentBic() {
+		return counterparty_settlement_localAgentBic;
+	}
+
+	public void setCounterparty_settlement_localAgentBic(String counterparty_settlement_localAgentBic) {
+		this.counterparty_settlement_localAgentBic = counterparty_settlement_localAgentBic;
+	}
+
+	public String getCounterparty_settlement_localAgentName() {
+		return counterparty_settlement_localAgentName;
+	}
+
+	public void setCounterparty_settlement_localAgentName(String counterparty_settlement_localAgentName) {
+		this.counterparty_settlement_localAgentName = counterparty_settlement_localAgentName;
+	}
+
+	public String getCounterparty_settlement_localAgentAcct() {
+		return counterparty_settlement_localAgentAcct;
+	}
+
+	public void setCounterparty_settlement_localAgentAcct(String counterparty_settlement_localAgentAcct) {
+		this.counterparty_settlement_localAgentAcct = counterparty_settlement_localAgentAcct;
+	}
+
+	public String getCounterparty_settlement_dtcParticipantNumber() {
+		return counterparty_settlement_dtcParticipantNumber;
+	}
+
+	public void setCounterparty_settlement_dtcParticipantNumber(String counterparty_settlement_dtcParticipantNumber) {
+		this.counterparty_settlement_dtcParticipantNumber = counterparty_settlement_dtcParticipantNumber;
+	}
+
+	public String getCounterparty_settlement_custodianName() {
+		return counterparty_settlement_custodianName;
+	}
+
+	public void setCounterparty_settlement_custodianName(String counterparty_settlement_custodianName) {
+		this.counterparty_settlement_custodianName = counterparty_settlement_custodianName;
+	}
+
+	public String getCounterparty_settlement_custodianBic() {
+		return counterparty_settlement_custodianBic;
+	}
+
+	public void setCounterparty_settlement_custodianBic(String counterparty_settlement_custodianBic) {
+		this.counterparty_settlement_custodianBic = counterparty_settlement_custodianBic;
+	}
+
+	public String getCounterparty_settlement_custodianAcct() {
+		return counterparty_settlement_custodianAcct;
+	}
+
+	public void setCounterparty_settlement_custodianAcct(String counterparty_settlement_custodianAcct) {
+		this.counterparty_settlement_custodianAcct = counterparty_settlement_custodianAcct;
 	}
 
 	public String getApi_uri() {

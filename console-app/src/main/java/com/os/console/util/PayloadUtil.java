@@ -5,7 +5,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -70,15 +69,13 @@ import com.os.client.model.TermType;
 import com.os.client.model.TradeAgreement;
 import com.os.client.model.TransactingParties;
 import com.os.client.model.TransactingParty;
-import com.os.client.model.Venue;
-import com.os.client.model.VenueType;
 import com.os.client.model.Venues;
 import com.os.console.api.ConsoleConfig;
 
 public class PayloadUtil {
 
 	public static LoanProposal createLoanProposal(Party borrowerParty, Party lenderParty, PartyRole proposingPartyRole,
-			Instrument instrument) {
+			Instrument instrument, Instrument minInstrument) {
 
 		Random random = new Random();
 
@@ -110,15 +107,14 @@ public class PayloadUtil {
 
 		Venues venues = new Venues();
 
-		Venue venue = new Venue();
-		venue.setType(VenueType.OFFPLATFORM);
-		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
-
-		venues.add(venue);
+//		Venue venue = new Venue();
+//		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
+//
+//		venues.add(venue);
 
 		trade.setVenues(venues);
 
-		trade.setInstrument(instrument);
+		trade.setInstrument(minInstrument); //<-- only send a single securty type
 
 		LocalDate tradeDate = LocalDate.now(ZoneId.of("UTC"));
 
@@ -150,10 +146,10 @@ public class PayloadUtil {
 		trade.setSettlementType(SettlementType.DVP);
 
 		Collateral collateral = new Collateral();
-		collateral.setContractPrice(trade.getInstrument().getPrice().getValue().doubleValue());
+		collateral.setContractPrice(instrument.getPrice().getValue().doubleValue());
 
 		BigDecimal contractValue = BigDecimal.valueOf(
-				trade.getQuantity().doubleValue() * (trade.getInstrument().getPrice().getValue().doubleValue()));
+				trade.getQuantity().doubleValue() * (instrument.getPrice().getValue().doubleValue()));
 		contractValue = contractValue.setScale(2, java.math.RoundingMode.HALF_UP);
 		collateral.setContractValue(contractValue.doubleValue());
 
@@ -176,7 +172,9 @@ public class PayloadUtil {
 
 		loanProposal.setTrade(trade);
 
-		loanProposal.setSettlement(Collections.singletonList(ConsoleConfig.SETTLEMENT_INSTRUCTIONS));
+		List<PartySettlementInstruction> settlementInstructions = new ArrayList<>();
+		settlementInstructions.add(ConsoleConfig.SETTLEMENT_INSTRUCTIONS);
+		loanProposal.setSettlement(settlementInstructions);
 
 		return loanProposal;
 	}
@@ -201,11 +199,10 @@ public class PayloadUtil {
 
 		ReturnProposal proposal = new ReturnProposal();
 
-		Venue venue = new Venue();
-		venue.setType(VenueType.OFFPLATFORM);
-		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
-
-		proposal.setExecutionVenue(venue);
+//		Venue venue = new Venue();
+//		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
+//
+//		proposal.setExecutionVenue(venue);
 
 		proposal.setQuantity(quantity);
 		proposal.setReturnDate(LocalDate.now(ZoneId.of("UTC")));
@@ -249,11 +246,10 @@ public class PayloadUtil {
 
 		RecallProposal proposal = new RecallProposal();
 
-		Venue venue = new Venue();
-		venue.setType(VenueType.OFFPLATFORM);
-		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
-
-		proposal.setExecutionVenue(venue);
+//		Venue venue = new Venue();
+//		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
+//
+//		proposal.setExecutionVenue(venue);
 
 		proposal.setQuantity(quantity);
 		proposal.setRecallDate(LocalDate.now(ZoneId.of("UTC")));
@@ -291,11 +287,10 @@ public class PayloadUtil {
 
 		RerateProposal proposal = new RerateProposal();
 
-		Venue venue = new Venue();
-		venue.setType(VenueType.OFFPLATFORM);
-		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
-
-		proposal.setExecutionVenue(venue);
+//		Venue venue = new Venue();
+//		venue.setVenueRefKey("CONSOLE" + System.currentTimeMillis());
+//
+//		proposal.setExecutionVenue(venue);
 
 		LocalDate rerateDate = LocalDate.now(ZoneId.of("UTC"));
 

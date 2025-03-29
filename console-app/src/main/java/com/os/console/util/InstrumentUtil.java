@@ -43,6 +43,11 @@ public class InstrumentUtil {
 				String nextLine;
 				while ((nextLine = reader.readLine()) != null) {
 
+					//header
+					if (nextLine.startsWith("\"FIGI")) {
+						continue;
+					}
+					
 					String[] lineParts = nextLine.split(",");
 
 					Instrument instrument = createInstrument(lineParts);
@@ -51,6 +56,8 @@ public class InstrumentUtil {
 					instrumentMap.put(instrument.getIsin().toUpperCase(), instrument);
 					instrumentMap.put(instrument.getTicker().toUpperCase(), instrument);
 					instrumentMap.put(instrument.getFigi().toUpperCase(), instrument);
+					instrumentMap.put(instrument.getCusip().toUpperCase(), instrument);
+					instrumentMap.put(instrument.getSedol().toUpperCase(), instrument);
 
 					cnt++;
 				}
@@ -98,6 +105,8 @@ public class InstrumentUtil {
 		int idx = 0;
 		instrument.setFigi(parseString(lineParts[idx++]));
 		instrument.setIsin(parseString(lineParts[idx++]));
+		instrument.setCusip(parseString(lineParts[idx++]));
+		instrument.setSedol(parseString(lineParts[idx++]));
 		instrument.setTicker(parseString(lineParts[idx++]));
 		instrument.setMarketCode(parseString(lineParts[idx++]));
 		instrument.setDescription(parseString(lineParts[idx++]));

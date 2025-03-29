@@ -134,7 +134,49 @@ public class LoginConsole {
 			instruction.setDtcParticipantNumber(authConfig.getSettlement_dtcParticipantNumber());
 			
 			ConsoleConfig.SETTLEMENT_INSTRUCTIONS = partySettlementInstruction;
+
+			PartySettlementInstruction counterpartySettlementInstruction = new PartySettlementInstruction();
+			counterpartySettlementInstruction.setPartyRole(PartyRole.BORROWER.equals(partySettlementInstruction.getPartyRole()) ? PartyRole.LENDER : PartyRole.BORROWER);
+			counterpartySettlementInstruction.setSettlementStatus(SettlementStatus.NONE);
+			counterpartySettlementInstruction.setInternalAccountCode(authConfig.getSettlement_internalAcctCd());
+
+			SettlementInstruction counterpartyInstruction = new SettlementInstruction();
+			counterpartySettlementInstruction.setInstruction(counterpartyInstruction);
 			
+			if (authConfig.getCounterparty_settlement_settlementBic() != null && authConfig.getCounterparty_settlement_settlementBic().trim().length() > 0) {
+				counterpartyInstruction.setSettlementBic(authConfig.getCounterparty_settlement_settlementBic());
+			}
+			
+			if (authConfig.getCounterparty_settlement_localAgentBic() != null && authConfig.getCounterparty_settlement_localAgentBic().trim().length() > 0) {
+				counterpartyInstruction.setLocalAgentBic(authConfig.getCounterparty_settlement_localAgentBic());
+			}
+			
+			if (authConfig.getCounterparty_settlement_localAgentName() != null && authConfig.getCounterparty_settlement_localAgentName().trim().length() > 0) {
+				counterpartyInstruction.setLocalAgentName(authConfig.getCounterparty_settlement_localAgentName());
+			}
+			
+			if (authConfig.getCounterparty_settlement_localAgentAcct() != null && authConfig.getCounterparty_settlement_localAgentAcct().trim().length() > 0) {
+				counterpartyInstruction.setLocalAgentAccount(authConfig.getCounterparty_settlement_localAgentAcct());
+			}
+			
+			if (authConfig.getCounterparty_settlement_custodianBic() != null && authConfig.getCounterparty_settlement_custodianBic().trim().length() > 0) {
+				counterpartyInstruction.setCustodianBic(authConfig.getCounterparty_settlement_custodianBic());
+			}
+			
+			if (authConfig.getCounterparty_settlement_custodianName() != null && authConfig.getCounterparty_settlement_custodianName().trim().length() > 0) {
+				counterpartyInstruction.setCustodianName(authConfig.getCounterparty_settlement_custodianName());
+			}
+			
+			if (authConfig.getCounterparty_settlement_custodianAcct() != null && authConfig.getCounterparty_settlement_custodianAcct().trim().length() > 0) {
+				counterpartyInstruction.setCustodianAccount(authConfig.getCounterparty_settlement_custodianAcct());
+			}
+			
+			if (authConfig.getCounterparty_settlement_dtcParticipantNumber() != null && authConfig.getCounterparty_settlement_dtcParticipantNumber().trim().length() > 0) {
+				counterpartyInstruction.setDtcParticipantNumber(authConfig.getCounterparty_settlement_dtcParticipantNumber());
+			}
+			
+			ConsoleConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS = counterpartySettlementInstruction;
+
 		} catch (Exception e) {
 			System.out.println("Error during login");
 			logger.error("Exception during login: " + e.getMessage());
