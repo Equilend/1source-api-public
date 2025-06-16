@@ -55,6 +55,8 @@ import com.os.client.model.RebateRate;
 import com.os.client.model.RecallAcknowledgement;
 import com.os.client.model.RecallProposal;
 import com.os.client.model.Rerate;
+import com.os.client.model.RerateCancelErrorReason;
+import com.os.client.model.RerateCancelErrorResponse;
 import com.os.client.model.RerateDeclineErrorReason;
 import com.os.client.model.RerateDeclineErrorReasonFieldType;
 import com.os.client.model.RerateDeclineErrorReasonFieldValue;
@@ -550,16 +552,23 @@ public class PayloadUtil {
 		return response;
 	}
 
+	public static RerateCancelErrorResponse createRerateCancelErrorResponse() {
+		
+		RerateCancelErrorResponse response = new RerateCancelErrorResponse();
+		
+		response.setReason(RerateCancelErrorReason.NO_RESPONSE);
+		
+		return response;
+	}
+	
 	public static RerateDeclineErrorResponse createRerateDeclineErrorResponse(Rerate rerate) {
 
 		RerateDeclineErrorResponse response = new RerateDeclineErrorResponse();
 
 		response.setReason(RerateDeclineErrorReason.INCORRECT_RERATE_INFO);
 
-		List<RerateDeclineErrorReasonFieldValue> errors = new ArrayList<>();
-
 		RerateDeclineErrorReasonFieldValue rateError = new RerateDeclineErrorReasonFieldValue();
-		rateError.setField(RerateDeclineErrorReasonFieldType.RERATE);
+		rateError.setField(RerateDeclineErrorReasonFieldType.RERATE_VALUE);
 
 		if (rerate.getRerate() instanceof RebateRate) {
 			RebateRate rebateRate = (RebateRate) rerate.getRerate();
@@ -572,15 +581,13 @@ public class PayloadUtil {
 				fixedRate.getFixed().setBaseRate(fixedRate.getFixed().getBaseRate().doubleValue() + 1);
 			}
 			rateError.setExpectedValue(rebateRate);
-			errors.add(rateError);
 		} else if (rerate.getRerate() instanceof FeeRate) {
 			FeeRate feeRate = (FeeRate)rerate.getRerate();
 			feeRate.getFee().setBaseRate(feeRate.getFee().getBaseRate().doubleValue() + 1);
 			rateError.setExpectedValue(feeRate);
-			errors.add(rateError);
 		}
 
-		response.setErrors(errors);
+		response.setError(rateError);
 
 		return response;
 	}

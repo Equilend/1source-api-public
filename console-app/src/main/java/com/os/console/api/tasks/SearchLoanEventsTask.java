@@ -1,10 +1,15 @@
 package com.os.console.api.tasks;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Event;
+import com.os.client.model.EventType;
 import com.os.client.model.Events;
 import com.os.client.model.Loan;
 import com.os.console.util.ConsoleOutputUtil;
@@ -16,17 +21,31 @@ public class SearchLoanEventsTask implements Runnable {
 
 	private WebClient webClient;
 	private Loan loan;
+	private Integer days;
+    private EventType eventType;
     
-	public SearchLoanEventsTask(WebClient webClient, Loan loan) {
+	public SearchLoanEventsTask(WebClient webClient, Loan loan, Integer days, EventType eventType) {
 		this.webClient = webClient;
 		this.loan = loan;
+		this.days = days;
+		this.eventType = eventType;
 	}
 
 	@Override
 	public void run() {
 
-		String uri = "/loans/" + loan.getLoanId() + "/events";
+		String uri = "/loans/" + loan.getLoanId() + "/events?";
 
+		if (days != null && days >= 1) {
+			LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC).minusDays(days);
+			uri += ("since=" + DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(localDateTime) + "Z&");
+		}
+
+		if (eventType != null) {
+			uri += "eventType=" + eventType.getValue() + "&";
+		}
+
+		
 		Events events = (Events) RESTUtil.getRequest(webClient, uri, Events.class);
 
 		if (events == null || events.size() == 0) {

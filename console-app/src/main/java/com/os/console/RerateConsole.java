@@ -82,7 +82,7 @@ public class RerateConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Canceling rerate...");
-				CancelRerateTask cancelRerateTask = new CancelRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId());
+				CancelRerateTask cancelRerateTask = new CancelRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateCancelErrorResponse());
 				Thread taskS = new Thread(cancelRerateTask);
 				taskS.run();
 				try {

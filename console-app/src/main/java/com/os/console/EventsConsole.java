@@ -22,88 +22,168 @@ public class EventsConsole extends AbstractConsole {
 
 	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
 
-		if (args[0].equals("I")) {
-			Integer size = 100;
-			if (args.length == 2) {
-				try {
-					size = Integer.valueOf(args[1]);
-				} catch (Exception e) {
-					System.out.println("Invalid size value");
-				}
+		// The second arg may need to be split
+		String arg0 = args[0];
+		String arg1 = null;
+		String arg2 = null;
+
+		if (args.length == 2) {
+			arg1 = args[1].trim();
+			int idxSep = arg1.indexOf(" ");
+			if (idxSep > 0) {
+				arg2 = arg1.substring(idxSep + 1).trim();
+				arg1 = arg1.substring(0, idxSep);
 			}
-			System.out.print("Listing latest " + size + " events...");
-			SearchEventsTask searchEventsTask = new SearchEventsTask(webClient, size, null, null, null);
-			Thread taskT = new Thread(searchEventsTask);
-			taskT.run();
-			try {
-				taskT.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		} else if (args[0].equals("T")) {
+		}
+
+		if (arg0.equals("I")) {
+			Integer days = 1;
 			EventType eventType = null;
-			if (args.length != 2) {
-				System.out.println("Invalid event type");
-			} else {
-				eventType = EventType.fromValue(args[1].toUpperCase());
-				if (eventType != null) {
-					System.out.print(
-							"Listing all " + (eventType != null ? (eventType.getValue() + " ") : "") + "events...");
-					SearchEventsTask searchEventsTask = new SearchEventsTask(webClient, null, eventType, null, null);
-					Thread taskT = new Thread(searchEventsTask);
-					taskT.run();
-					try {
-						taskT.join();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} else {
-					System.out.println("Invalid event type");
-				}
-			}
-		} else if (args[0].equals("N")) {
-			if (args.length != 2 || args[1].length() > 20) {
-				System.out.println("Invalid event Id");
-			} else {
+
+			SearchEventsTask searchEventsTask = null;
+
+			if (arg1 != null) {
 				try {
-					Long eventId = Long.valueOf(args[1]);
-					System.out.print("Listing events after " + eventId + "...");
-					SearchEventsTask searchEventsTask = new SearchEventsTask(webClient, null, null, null, eventId);
-					Thread taskT = new Thread(searchEventsTask);
-					taskT.run();
-					try {
-						taskT.join();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+
+					days = Integer.valueOf(arg1);
+
+					if (days <= 60) {
+						if (arg2 != null) {
+							try {
+								eventType = EventType.fromValue(arg2.toUpperCase());
+								if (eventType == null) {
+									System.out.println("Invalid Event Type");
+								} else {
+									searchEventsTask = new SearchEventsTask(webClient, days, eventType, null, null);
+								}
+							} catch (Exception u) {
+								System.out.println("Invalid Event Type");
+							}
+						} else {
+							searchEventsTask = new SearchEventsTask(webClient, days, null, null, null);
+						}
+					} else {
+						System.out.println("Invalid Days value. Maximum is 60.");
 					}
-				} catch (Exception u) {
-					System.out.println("Invalid event Id");
+				} catch (Exception e) {
+					System.out.println("Invalid Days value. Maximum is 60.");
 				}
-			}
-		} else if (args[0].equals("V")) {
-			if (args.length != 2 || args[1].length() > 20) {
-				System.out.println("Invalid seconds value");
+
 			} else {
+				searchEventsTask = new SearchEventsTask(webClient, null, null, null, null);
+			}
+
+			if (searchEventsTask != null) {
+				System.out.print("Listing last " + days + " days of "
+						+ (eventType != null ? eventType.getValue() : "ALL") + " events...");
+
+				Thread taskT = new Thread(searchEventsTask);
+				taskT.run();
 				try {
-					Integer seconds = Integer.valueOf(args[1]);
-					System.out.print("Listing events created in the last " + seconds + " seconds...");
-					SearchEventsTask searchEventsTask = new SearchEventsTask(webClient, null, null, seconds, null);
-					Thread taskT = new Thread(searchEventsTask);
-					taskT.run();
-					try {
-						taskT.join();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} catch (Exception u) {
-					System.out.println("Invalid seconds value");
+					taskT.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
-		} else if (args[0].equals("S")) {
-			if (args.length != 2 || args[1].length() > 20) {
-				System.out.println("Invalid event Id");
+
+		} else if (arg0.equals("N")) {
+
+			Long eventId = null;
+			EventType eventType = null;
+
+			SearchEventsTask searchEventsTask = null;
+
+			if (arg1 != null && arg1.length() <= 30) {
+				try {
+					eventId = Long.valueOf(arg1);
+
+					if (arg2 != null) {
+						try {
+							eventType = EventType.fromValue(arg2.toUpperCase());
+							if (eventType == null) {
+								System.out.println("Invalid Event Type");
+							} else {
+								searchEventsTask = new SearchEventsTask(webClient, null, eventType, null, eventId);
+							}
+						} catch (Exception u) {
+							System.out.println("Invalid Event Type");
+						}
+					} else {
+						searchEventsTask = new SearchEventsTask(webClient, null, null, null, eventId);
+					}
+				} catch (Exception e) {
+					System.out.println("Invalid Event Id");
+				}
+
 			} else {
-				String eventId = args[1].toLowerCase();
+				System.out.println("Invalid Event Id");
+			}
+
+			if (searchEventsTask != null) {
+				System.out.print("Listing events since event " + eventId + " of type "
+						+ (eventType != null ? eventType.getValue() : "ALL") + "...");
+
+				Thread taskT = new Thread(searchEventsTask);
+				taskT.run();
+				try {
+					taskT.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		} else if (arg0.equals("V")) {
+			Integer seconds = null;
+			EventType eventType = null;
+
+			SearchEventsTask searchEventsTask = null;
+
+			if (arg1 != null && arg1.length() <= 6) {
+				try {
+					seconds = Integer.valueOf(arg1);
+
+					if (seconds <= 604800) {
+
+						if (arg2 != null) {
+							try {
+								eventType = EventType.fromValue(arg2.toUpperCase());
+								if (eventType == null) {
+									System.out.println("Invalid Event Type");
+								} else {
+									searchEventsTask = new SearchEventsTask(webClient, null, eventType, seconds, null);
+								}
+							} catch (Exception u) {
+								System.out.println("Invalid Event Type");
+							}
+						} else {
+							searchEventsTask = new SearchEventsTask(webClient, null, null, seconds, null);
+						}
+					} else {
+						System.out.println("Invalid Seconds value. Should be less than 604800.");
+					}
+				} catch (Exception e) {
+					System.out.println("Invalid Seconds value. Should be less than 604800.");
+				}
+
+			} else {
+				System.out.println("Invalid Seconds value");
+			}
+
+			if (searchEventsTask != null) {
+				System.out.print("Listing last " + seconds + " seconds of "
+						+ (eventType != null ? eventType.getValue() : "ALL") + " events...");
+
+				Thread taskT = new Thread(searchEventsTask);
+				taskT.run();
+				try {
+					taskT.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		} else if (arg0.equals("S")) {
+			if (arg1 != null && arg1.length() > 20) {
+				String eventId = arg1.toLowerCase();
 				try {
 					if (Long.valueOf(eventId) != null) {
 						System.out.print("Searching for event " + eventId + "...");
@@ -125,6 +205,8 @@ public class EventsConsole extends AbstractConsole {
 				} catch (Exception u) {
 					System.out.println("Invalid event Id");
 				}
+			} else {
+				System.out.println("Invalid event Id");
 			}
 		} else {
 			System.out.println("Unknown command");
@@ -135,13 +217,14 @@ public class EventsConsole extends AbstractConsole {
 	protected void printMenu() {
 		System.out.println("Events Menu");
 		System.out.println("-----------------------");
-		System.out.println("I <size>       - List latest events");
-		System.out.println("T <Event Type> - List events matching Event Type");
-		System.out.println("N <Event Id>   - List events since Event Id");
-		System.out.println("V <Seconds>    - List events created in last Seconds");
-		System.out.println("S <Event Id>   - Search an event by Id");
+		System.out.println(
+				"I <Days>     <Event Type> - List events for last Days of Event Type. Defaults to All events for current business day");
+		System.out.println("N <Event Id> <Event Type> - List events since Event Id of Event Type");
+		System.out.println("V <Seconds>  <Event Type> - List events created in last Seconds of Event Type");
 		System.out.println();
-		System.out.println("X              - Go back");
+		System.out.println("S <Event Id>              - Search an event by Id");
+		System.out.println();
+		System.out.println("X                         - Go back");
 	}
 
 }

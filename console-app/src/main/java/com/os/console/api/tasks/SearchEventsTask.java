@@ -19,14 +19,14 @@ public class SearchEventsTask implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(SearchEventsTask.class);
 
 	private WebClient webClient;
-	private Integer size;
+	private Integer days;
     private EventType eventType;
     private Integer seconds;
     private Long fromEventId;
     
-	public SearchEventsTask(WebClient webClient, Integer size, EventType eventType, Integer seconds, Long fromEventId) {
+	public SearchEventsTask(WebClient webClient, Integer days, EventType eventType, Integer seconds, Long fromEventId) {
 		this.webClient = webClient;
-		this.size = size;
+		this.days = days;
 		this.eventType = eventType;
 		this.seconds = seconds;
 		this.fromEventId = fromEventId;
@@ -35,18 +35,23 @@ public class SearchEventsTask implements Runnable {
 	@Override
 	public void run() {
 
-		String uri = "/events";
-		if (size != null) {
-			uri += "?size=" + size;
-		} else if (eventType != null) {
-			uri += "?eventType=" + eventType.getValue();
+		String uri = "/events?";
+		if (days != null && days >= 1) {
+			LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC).minusDays(days);
+			uri += ("since=" + DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(localDateTime) + "Z&");
 		} else if (seconds != null) {
 			LocalDateTime localDateTime = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(seconds);
-			uri += "?since=" + DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(localDateTime) + "Z";
-		} else if (fromEventId != null) {
-			uri += "?fromEventId=" + fromEventId;
+			uri += "since=" + DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(localDateTime) + "Z&";
+		}
+		
+		if (fromEventId != null) {
+			uri += "fromEventId=" + fromEventId + "&";
 		}
 
+		if (eventType != null) {
+			uri += "eventType=" + eventType.getValue() + "&";
+		}
+		
 		Events events = (Events) RESTUtil.getRequest(webClient, uri, Events.class);
 
 		if (events == null || events.size() == 0) {
