@@ -139,7 +139,7 @@ public class LoanReratesConsole extends AbstractConsole {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Cancelling rerate " + rerateId + "...");
 						CancelRerateTask cancelRerateTask = new CancelRerateTask(webClient, loan.getLoanId(),
-								rerateId);
+								rerateId, PayloadUtil.createRerateCancelErrorResponse());
 						Thread taskT = new Thread(cancelRerateTask);
 						taskT.run();
 						try {

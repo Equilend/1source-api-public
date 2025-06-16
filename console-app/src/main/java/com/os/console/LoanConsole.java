@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.os.client.model.EventType;
 import com.os.client.model.Loan;
 import com.os.client.model.SettlementInstructionUpdate;
 import com.os.console.api.ConsoleConfig;
@@ -76,15 +77,69 @@ public class LoanConsole extends AbstractConsole {
 				e.printStackTrace();
 			}
 		} else if (args[0].equals("V")) {
-			System.out.print("Listing loan events...");
-			SearchLoanEventsTask searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan);
-			Thread taskT = new Thread(searchLoanEventsTask);
-			taskT.run();
-			try {
-				taskT.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+
+			// The second arg may need to be split
+			String arg1 = null;
+			String arg2 = null;
+
+			if (args.length == 2) {
+				arg1 = args[1].trim();
+				int idxSep = arg1.indexOf(" ");
+				if (idxSep > 0) {
+					arg2 = arg1.substring(idxSep + 1).trim();
+					arg1 = arg1.substring(0, idxSep);
+				}
 			}
+
+			Integer days = 1;
+			EventType eventType = null;
+
+			SearchLoanEventsTask searchLoanEventsTask = null;
+
+			if (arg1 != null) {
+				try {
+
+					days = Integer.valueOf(arg1);
+
+					if (days <= 60) {
+						if (arg2 != null) {
+							try {
+								eventType = EventType.fromValue(arg2.toUpperCase());
+								if (eventType == null) {
+									System.out.println("Invalid Event Type");
+								} else {
+									searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, days, eventType);
+								}
+							} catch (Exception u) {
+								System.out.println("Invalid Event Type");
+							}
+						} else {
+							searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, days, null);
+						}
+					} else {
+						System.out.println("Invalid Days value. Maximum is 60.");
+					}
+				} catch (Exception e) {
+					System.out.println("Invalid Days value. Maximum is 60.");
+				}
+
+			} else {
+				searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, null, null);
+			}
+
+			if (searchLoanEventsTask != null) {
+				System.out.print("Listing last " + days + " days of "
+						+ (eventType != null ? eventType.getValue() : "ALL") + " events...");
+
+				Thread taskT = new Thread(searchLoanEventsTask);
+				taskT.run();
+				try {
+					taskT.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
 		} else if (args[0].equals("A")) {
 
 			System.out.print("Approving loan...");
@@ -286,28 +341,28 @@ public class LoanConsole extends AbstractConsole {
 	protected void printMenu() {
 		System.out.println("Loan Menu");
 		System.out.println("-----------------------------");
-		System.out.println("J                   - Print JSON");
-		System.out.println("F                   - Refresh");
-		System.out.println("H                   - Full history");
-		System.out.println("Y                   - Rate change history");
-		System.out.println("V                   - Events");
+		System.out.println("J                     - Print JSON");
+		System.out.println("F                     - Refresh");
+		System.out.println("H                     - Full history");
+		System.out.println("Y                     - Rate change history");
+		System.out.println("V <Days> <Event Type> - List events for last Days of Event Type. Defaults to All events for current business day");
 		System.out.println();
-		System.out.println("A                   - Approve");
-		System.out.println("C                   - Cancel");
-		System.out.println("D                   - Decline");
-		System.out.println("U                   - Update settlement status to SETTLED");
+		System.out.println("A                     - Approve");
+		System.out.println("C                     - Cancel");
+		System.out.println("D                     - Decline");
+		System.out.println("U                     - Update settlement status to SETTLED");
 		System.out.println();
-		System.out.println("N                   - Request to cancel (Pending Loans Only)");
-		System.out.println("I <Internal Ref>    - Update internal reference Id (Open Loans Only)");
-		System.out.println("K <DTC Number>      - Update settlement instructions to a new DTC box");
-		System.out.println("L <x,y,z>           - Split loan into x,y,z... quantities (Open Loans Only)");
-		System.out.println("S <Split ID>        - Search a split proposal by Id");
+		System.out.println("N                     - Request to cancel (Pending Loans Only)");
+		System.out.println("I <Internal Ref>      - Update internal reference Id (Open Loans Only)");
+		System.out.println("K <DTC Number>        - Update settlement instructions to a new DTC box");
+		System.out.println("L <x,y,z>             - Split loan into x,y,z... quantities (Open Loans Only)");
+		System.out.println("S <Split ID>          - Search a split proposal by Id");
 		System.out.println();
-		System.out.println("R                   - Manage returns");
-		System.out.println("E                   - Manage recalls");
-		System.out.println("T                   - Manage rerates");
+		System.out.println("R                     - Manage returns");
+		System.out.println("E                     - Manage recalls");
+		System.out.println("T                     - Manage rerates");
 		System.out.println();
-		System.out.println("X                   - Go back");
+		System.out.println("X                     - Go back");
 	}
 
 }
