@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.os.client.model.EventType;
 import com.os.client.model.FeeRate;
 import com.os.client.model.FixedRate;
 import com.os.client.model.FloatingRate;
@@ -63,10 +64,15 @@ public class SearchLoanHistoryTask implements Runnable {
 					effectiveRate = ((FeeRate) loanRate).getFee().getEffectiveRate();
 				}
 
+				Double mark = null;
+				if (loan.getTrade().getCollateral().getMark() != null) {
+					mark = loan.getTrade().getCollateral().getMark().getMarkValue();
+				}
+				
 				history.add(new LoanHistory(loan.getLastUpdateDateTime(),
 						loan.getLastEvent().getEventType().toString(), loan.getLoanStatus().toString(),
 						loan.getTrade().getQuantity(), loan.getTrade().getOpenQuantity(), rate, effectiveRate,
-						loan.getTrade().getCollateral().getContractPrice()));
+						loan.getTrade().getCollateral().getContractPrice(), mark));
 			}
 
 			Collections.sort(history);
@@ -89,6 +95,7 @@ public class SearchLoanHistoryTask implements Runnable {
 				System.out.print(ConsoleOutputUtil.padSpaces(loanHistory.rate, 10));
 				System.out.print(ConsoleOutputUtil.padSpaces(loanHistory.effectiveRate, 15));
 				System.out.print(ConsoleOutputUtil.padSpaces(loanHistory.price, 15));
+				System.out.print(ConsoleOutputUtil.padSpaces(EventType.LOAN_MARKTOMARKET.getValue().equals(loanHistory.eventType) ? loanHistory.mark : null, 15));
 				System.out.println();
 
 				rows++;
@@ -107,9 +114,11 @@ public class SearchLoanHistoryTask implements Runnable {
 		Double rate;
 		Double effectiveRate;
 		Double price;
+		Double mark;
 
 		public LoanHistory(OffsetDateTime lastUpdateDateTime, String eventType, String loanStatus,
-				Integer origQuantity, Integer openQuantity, Double rate, Double effectiveRate, Double price) {
+				Integer origQuantity, Integer openQuantity, Double rate, Double effectiveRate, Double price,
+				Double mark) {
 			super();
 			this.lastUpdateDateTime = lastUpdateDateTime;
 			this.eventType = eventType;
@@ -119,6 +128,7 @@ public class SearchLoanHistoryTask implements Runnable {
 			this.rate = rate;
 			this.effectiveRate = effectiveRate;
 			this.price = price;
+			this.mark = mark;
 		}
 
 		@Override
@@ -142,15 +152,17 @@ public class SearchLoanHistoryTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Rate", 10));
 		System.out.print(ConsoleOutputUtil.padSpaces("Effective Rate", 15));
 		System.out.print(ConsoleOutputUtil.padSpaces("Price", 15));
+		System.out.print(ConsoleOutputUtil.padSpaces("Mark", 15));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("-----------", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("----", 10));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----", 15));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(10));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.println();
 	}
 }

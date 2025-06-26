@@ -70,10 +70,10 @@ public class SearchPartiesTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("GLEIF LEI", 35));
 		System.out.print(ConsoleOutputUtil.padSpaces("Party Type", 20));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("--------", 25));
-		System.out.print(ConsoleOutputUtil.padSpaces("----------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 35));
-		System.out.print(ConsoleOutputUtil.padSpaces("----------", 20));
+		System.out.print(ConsoleOutputUtil.padDivider(25));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(35));
+		System.out.print(ConsoleOutputUtil.padDivider(20));
 		System.out.println();
 	}
 }

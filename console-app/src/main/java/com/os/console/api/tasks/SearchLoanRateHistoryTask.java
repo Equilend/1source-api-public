@@ -132,12 +132,12 @@ public class SearchLoanRateHistoryTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Benchmark", 10));
 		System.out.print(ConsoleOutputUtil.padSpaces("Base Rate", 10));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 10));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 10));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(10));
+		System.out.print(ConsoleOutputUtil.padDivider(10));
 		System.out.println();
 	}
 }

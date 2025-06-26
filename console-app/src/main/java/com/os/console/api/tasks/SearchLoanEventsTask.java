@@ -81,10 +81,10 @@ public class SearchLoanEventsTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Type", 35));
 		System.out.print(ConsoleOutputUtil.padSpaces("URI", 100));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("--------", 25));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("----", 35));
-		System.out.print(ConsoleOutputUtil.padSpaces("---", 100));
+		System.out.print(ConsoleOutputUtil.padDivider(25));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(35));
+		System.out.print(ConsoleOutputUtil.padDivider(100));
 		System.out.println();
 	}
 }

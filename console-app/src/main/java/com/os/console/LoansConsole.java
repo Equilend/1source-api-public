@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.LoanStatus;
+import com.os.client.model.Party;
 import com.os.client.model.PartyRole;
 import com.os.console.api.ConsoleConfig;
 import com.os.console.api.tasks.ApproveLoanTask;
@@ -15,6 +16,7 @@ import com.os.console.api.tasks.CancelPendingLoanTask;
 import com.os.console.api.tasks.DeclineLoanTask;
 import com.os.console.api.tasks.ProposeLoanSplitTask;
 import com.os.console.api.tasks.SearchLoanHistoryTask;
+import com.os.console.api.tasks.SearchLoanMarksTask;
 import com.os.console.api.tasks.SearchLoanRateHistoryTask;
 import com.os.console.api.tasks.SearchLoanTask;
 import com.os.console.api.tasks.SearchLoansTask;
@@ -189,7 +191,8 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Canceling loan " + loanId + "...");
-						CancelLoanTask cancelLoanTask = new CancelLoanTask(webClient, loanId, PayloadUtil.createLoanCancelErrorResponse());
+						CancelLoanTask cancelLoanTask = new CancelLoanTask(webClient, loanId,
+								PayloadUtil.createLoanCancelErrorResponse());
 						Thread taskT = new Thread(cancelLoanTask);
 						taskT.run();
 						try {
@@ -235,7 +238,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Declining loan " + loanId + "...");
-						
+
 						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
@@ -299,8 +302,10 @@ public class LoansConsole extends AbstractConsole {
 								if (searchLoanTask.getLoan() != null) {
 
 									System.out.print("Splitting loan " + loanId + "...");
-									ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(
-											webClient, searchLoanTask.getLoan(), PayloadUtil.createLoanSplitProposal(quantitySplits), ConsoleConfig.ACTING_PARTY);
+									ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(webClient,
+											searchLoanTask.getLoan(),
+											PayloadUtil.createLoanSplitProposal(quantitySplits),
+											ConsoleConfig.ACTING_PARTY);
 									Thread taskU = new Thread(proposeLoanSplitTask);
 									taskU.run();
 									try {
@@ -412,7 +417,8 @@ public class LoansConsole extends AbstractConsole {
 					}
 					if (searchPartyTask.getParty() != null) {
 						System.out.print("Listing all " + searchPartyTask.getParty().getPartyId() + " loans...");
-						SearchLoansTask searchLoansTask = new SearchLoansTask(webClient, null, searchPartyTask.getParty());
+						SearchLoansTask searchLoansTask = new SearchLoansTask(webClient, null,
+								searchPartyTask.getParty());
 						Thread taskF = new Thread(searchLoansTask);
 						taskF.run();
 						try {
@@ -425,6 +431,55 @@ public class LoansConsole extends AbstractConsole {
 					System.out.println("Invalid party id");
 				}
 			}
+		} else if (args[0].equals("M")) {
+
+			Party searchParty = null;
+
+			String partyId = null;
+			if (args.length == 2 && args[1].length() <= 30) {
+				partyId = args[1];
+				if (ConsoleConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
+					System.out.println("You are not a counterparty to yourself");
+				} else {
+					try {
+						System.out.print("Verifying party " + partyId + "...");
+						SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+						Thread taskT = new Thread(searchPartyTask);
+						taskT.run();
+						try {
+							taskT.join();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						if (searchPartyTask.getParty() != null) {
+							searchParty = searchPartyTask.getParty();
+						}
+					} catch (Exception u) {
+						System.out.println("Invalid party id");
+					}
+				}
+			} else {
+				System.out.println("Invalid Party Id");
+			}
+
+			try {
+				if (searchParty != null) {
+					System.out.print("Listing all OPEN " + searchParty.getPartyId() + " loans...");
+				} else {
+					System.out.print("Listing all OPEN loans...");
+				}
+				SearchLoanMarksTask searchLoanMarksTask = new SearchLoanMarksTask(webClient, LoanStatus.OPEN, searchParty);
+				Thread taskF = new Thread(searchLoanMarksTask);
+				taskF.run();
+				try {
+					taskF.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			} catch (Exception u) {
+				System.out.println("Invalid party id");
+			}
+
 		} else {
 			System.out.println("Unknown command");
 		}
@@ -436,6 +491,7 @@ public class LoansConsole extends AbstractConsole {
 		System.out.println("-----------------------");
 		System.out.println("I <Loan Status>      - List all loans");
 		System.out.println("F <Party ID>         - List all loans with a counterparty");
+		System.out.println("M <Party ID>         - List current marks for OPEN loans with optional counterparty");
 		System.out.println();
 		System.out.println("S <Loan Id>          - Search a loan by Id");
 		System.out.println("H <Loan Id>          - Show full history for loan Id");

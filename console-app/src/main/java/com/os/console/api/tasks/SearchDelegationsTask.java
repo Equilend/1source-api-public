@@ -83,12 +83,12 @@ public class SearchDelegationsTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Party 1", 15));
 		System.out.print(ConsoleOutputUtil.padSpaces("Party 2", 15));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("-------------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------", 15));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.println();
 	}
 }

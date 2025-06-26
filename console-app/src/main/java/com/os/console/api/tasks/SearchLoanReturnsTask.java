@@ -60,11 +60,11 @@ public class SearchLoanReturnsTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Return Date", 15));
 		System.out.print(ConsoleOutputUtil.padSpaces("Quantity", 15));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------------", 30));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------", 15));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(30));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.println();
 	}
 }

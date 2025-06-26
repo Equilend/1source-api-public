@@ -57,11 +57,11 @@ public class SearchReratesTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Last Update DateTime", 26));
 		System.out.print(ConsoleOutputUtil.padSpaces("Date Proposed", 15));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------------", 26));
-		System.out.print(ConsoleOutputUtil.padSpaces("-------------", 15));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(26));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.println();		
 	}
 }

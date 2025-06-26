@@ -33,6 +33,9 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 	@Autowired
 	WebClient openFigiWebClient;
 
+	@Autowired
+	WebClient ledgerSearchWebClient;
+
 	public static void main(String[] args) {
 		logger.debug("STARTING THE APPLICATION");
 		ConfigurableApplicationContext applicationContext = SpringApplication.run(SpringBootConsoleApp.class, args);
@@ -49,12 +52,12 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 			logger.info("args[{}]: {}", i, args[i]);
 		}
 
-		Console console = System.console();
-		
-		if (console == null) {
-			logger.warn("No console available");
-			return;
-		}
+//		Console console = System.console();
+//		
+//		if (console == null) {
+//			logger.warn("No console available");
+//			return;
+//		}
 
 		BufferedReader consoleIn = new BufferedReader(new InputStreamReader(System.in));
 
@@ -75,7 +78,8 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 	@Override
 	protected void printMenu() {
 		System.out.println("Main Menu");
-		System.out.println("-----------------------");
+		System.out.println("------------------------");
+		System.out.println("O - Operations Reporting");
 		System.out.println("L - Loans");
 		System.out.println("R - Returns");
 		System.out.println("C - Recalls");
@@ -119,6 +123,9 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 		} else if (args[0].equalsIgnoreCase("f")) {
 			FigiConsole figiConsole = new FigiConsole();
 			figiConsole.execute(consoleIn, openFigiWebClient);
+		} else if (args[0].equalsIgnoreCase("o")) {
+			OperationsConsole operationsConsole = new OperationsConsole();
+			operationsConsole.execute(consoleIn, ledgerSearchWebClient);
 		} else {
 			System.out.println("Unknown command");
 		}		

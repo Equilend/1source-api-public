@@ -61,13 +61,13 @@ public class SearchRecallsTask implements Runnable {
 		System.out.print(ConsoleOutputUtil.padSpaces("Recall Due Date", 18));
 		System.out.print(ConsoleOutputUtil.padSpaces("Quantity", 15));
 		System.out.println();
-		System.out.print(ConsoleOutputUtil.padSpaces("---------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----------", 40));
-		System.out.print(ConsoleOutputUtil.padSpaces("------", 12));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------------------", 26));
-		System.out.print(ConsoleOutputUtil.padSpaces("-----------", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("---------------", 18));
-		System.out.print(ConsoleOutputUtil.padSpaces("--------", 15));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(40));
+		System.out.print(ConsoleOutputUtil.padDivider(12));
+		System.out.print(ConsoleOutputUtil.padDivider(26));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
+		System.out.print(ConsoleOutputUtil.padDivider(18));
+		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.println();
 	}
 }

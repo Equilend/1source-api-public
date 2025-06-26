@@ -2,6 +2,7 @@ package com.os.console.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,22 +12,45 @@ import com.os.client.model.LedgerResponse;
 import com.os.console.api.ConsoleConfig;
 import com.os.console.api.LedgerException;
 
+import reactor.core.publisher.Mono;
+
 public class RESTUtil {
 
 	private static final Logger logger = LoggerFactory.getLogger(RESTUtil.class);
 
-	@SuppressWarnings("unchecked")
 	public static Object getRequest(WebClient webClient, String url, @SuppressWarnings("rawtypes") Class c) {
+		return getRequest(webClient, url, c, null);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Object getRequest(WebClient webClient, String url, @SuppressWarnings("rawtypes") Class c,
+			Object payload) {
 
 		Object o = null;
 
 		try {
 
-			o = webClient.get().uri(url).headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve()
-					.onStatus(HttpStatusCode::is4xxClientError, response -> {
-						System.out.println(response.statusCode().toString());
-						return response.bodyToMono(LedgerException.class);
-					}).bodyToMono(c).block();
+			if (payload != null) {
+				String json = ConsoleOutputUtil.createJsonPayload(payload);
+
+				logger.debug("GET: " + url + " with Payload: " + json);
+
+				o = webClient.method(HttpMethod.GET).uri(url).body(Mono.just(json), String.class)
+						.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve()
+						.onStatus(HttpStatusCode::is4xxClientError, response -> {
+							System.out.println(response.statusCode().toString());
+							return response.bodyToMono(LedgerException.class);
+						}).bodyToMono(c).block();
+			} else {
+
+				logger.debug("GET: " + url);
+
+				o = webClient.get().uri(url).headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token()))
+						.retrieve().onStatus(HttpStatusCode::is4xxClientError, response -> {
+							System.out.println(response.statusCode().toString());
+							return response.bodyToMono(LedgerException.class);
+						}).bodyToMono(c).block();
+			}
 		} catch (Exception e) {
 			System.out.println("Failed on exception");
 			if (e.getCause() instanceof LedgerException) {
@@ -43,7 +67,7 @@ public class RESTUtil {
 
 		String json = ConsoleOutputUtil.createJsonPayload(payload);
 
-		logger.debug(json);
+		logger.debug("PATCH: " + url + " with Payload: " + json);
 
 		ResponseSpec spec = webClient.patch().uri(url).contentType(MediaType.APPLICATION_JSON).bodyValue(json)
 				.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve();
@@ -62,11 +86,14 @@ public class RESTUtil {
 		if (payload != null) {
 			String json = ConsoleOutputUtil.createJsonPayload(payload);
 
-			logger.debug(json);
+			logger.debug("POST: " + url + " with Payload: " + json);
 
 			spec = webClient.post().uri(url).contentType(MediaType.APPLICATION_JSON).bodyValue(json)
 					.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve();
 		} else {
+
+			logger.debug("POST: " + url);
+
 			spec = webClient.post().uri(url).headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token()))
 					.retrieve();
 

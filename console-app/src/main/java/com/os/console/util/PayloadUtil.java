@@ -73,6 +73,20 @@ import com.os.client.model.TransactingParties;
 import com.os.client.model.TransactingParty;
 import com.os.client.model.Venues;
 import com.os.console.api.ConsoleConfig;
+import com.os.console.api.search.model.AggregationDefTerms;
+import com.os.console.api.search.model.AggregationField;
+import com.os.console.api.search.model.AggregationSum;
+import com.os.console.api.search.model.MarkToMarketAggregationRequest;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilter;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregation;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregationDef;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregationFields;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterDef;
+import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterTerm;
+import com.os.console.api.search.model.fields.LoanContractBorrower;
+import com.os.console.api.search.model.fields.LoanContractCollateralCurrency;
+import com.os.console.api.search.model.fields.LoanContractCollateralValue;
+import com.os.console.api.search.model.fields.LoanContractMarkValue;
 
 public class PayloadUtil {
 
@@ -590,5 +604,58 @@ public class PayloadUtil {
 		response.setError(rateError);
 
 		return response;
+	}
+	
+	public static MarkToMarketAggregationRequest createMarkToMarketAggregationRequest(CurrencyCd currencyCd) {
+		
+		MarkToMarketAggregationRequest markToMarketAggregationRequest = new MarkToMarketAggregationRequest();
+		markToMarketAggregationRequest.setSize(0);
+		
+		MarkToMarketAggregationRequestFilter markToMarketAggregationRequestFilter = new MarkToMarketAggregationRequestFilter();
+		
+		MarkToMarketAggregationRequestFilterDef markToMarketAggregationRequestFilterDef = new MarkToMarketAggregationRequestFilterDef();
+		
+		MarkToMarketAggregationRequestFilterTerm markToMarketAggregationRequestFilterTerm = new MarkToMarketAggregationRequestFilterTerm();
+		LoanContractCollateralCurrency loanContractCollateralCurrency = new LoanContractCollateralCurrency();
+		loanContractCollateralCurrency.setCollateralCurrency(currencyCd.getValue());
+		markToMarketAggregationRequestFilterTerm.setTerm(loanContractCollateralCurrency);
+		markToMarketAggregationRequestFilterDef.setFilter(markToMarketAggregationRequestFilterTerm);
+
+		MarkToMarketAggregationRequestFilterAggregation markToMarketAggregationRequestFilterAggregation = new MarkToMarketAggregationRequestFilterAggregation();
+		
+		MarkToMarketAggregationRequestFilterAggregationDef markToMarketAggregationRequestFilterAggregationDef = new MarkToMarketAggregationRequestFilterAggregationDef();
+		
+		AggregationDefTerms aggregationDefTerms = new AggregationDefTerms();
+		aggregationDefTerms.setField((new LoanContractBorrower()).getFieldName());
+		aggregationDefTerms.setSize(10);
+		markToMarketAggregationRequestFilterAggregationDef.setTerms(aggregationDefTerms);
+		
+		MarkToMarketAggregationRequestFilterAggregationFields markToMarketAggregationRequestFilterAggregationFields = new MarkToMarketAggregationRequestFilterAggregationFields();
+		
+		AggregationSum aggregationSumCollateral = new AggregationSum();
+		AggregationField aggregationFieldCollateral = new AggregationField();
+		aggregationFieldCollateral.setField((new LoanContractCollateralValue()).getFieldName());
+		aggregationFieldCollateral.setFormat("$###,###.00");
+		aggregationSumCollateral.setSum(aggregationFieldCollateral);
+		markToMarketAggregationRequestFilterAggregationFields.setTotal_collateral_today(aggregationSumCollateral);
+
+		AggregationSum aggregationSumMark = new AggregationSum();
+		AggregationField aggregationFieldMark = new AggregationField();
+		aggregationFieldMark.setField((new LoanContractMarkValue()).getFieldName());
+		aggregationFieldMark.setFormat("$###,###.00");
+		aggregationSumMark.setSum(aggregationFieldMark);
+		markToMarketAggregationRequestFilterAggregationFields.setTotal_mark_today(aggregationSumMark);
+		
+		markToMarketAggregationRequestFilterAggregationDef.setAggs(markToMarketAggregationRequestFilterAggregationFields);
+		
+		markToMarketAggregationRequestFilterAggregation.setTotal_mark_today(markToMarketAggregationRequestFilterAggregationDef);
+		
+		markToMarketAggregationRequestFilterDef.setAggs(markToMarketAggregationRequestFilterAggregation);
+
+		markToMarketAggregationRequestFilter.setFiltered_sum(markToMarketAggregationRequestFilterDef);
+		
+		markToMarketAggregationRequest.setAggs(markToMarketAggregationRequestFilter);
+		
+		return markToMarketAggregationRequest;
 	}
 }

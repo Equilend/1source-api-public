@@ -1,8 +1,6 @@
 package com.os.console.api.tasks;
 
 import java.util.Comparator;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,21 +10,20 @@ import com.os.client.model.LoanStatus;
 import com.os.client.model.Loans;
 import com.os.client.model.Party;
 import com.os.client.model.PartyRole;
-import com.os.client.model.PartySettlementInstruction;
 import com.os.client.model.TransactingParties;
 import com.os.client.model.TransactingParty;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.RESTUtil;
 
-public class SearchLoansTask implements Runnable, Comparator<Loan> {
+public class SearchLoanMarksTask implements Runnable, Comparator<Loan> {
 
-	private static final Logger logger = LoggerFactory.getLogger(SearchLoansTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(SearchLoanMarksTask.class);
 
 	private WebClient webClient;
 	private LoanStatus loanStatus;
 	private Party counterparty;
 
-	public SearchLoansTask(WebClient webClient, LoanStatus loanStatus, Party counterparty) {
+	public SearchLoanMarksTask(WebClient webClient, LoanStatus loanStatus, Party counterparty) {
 		this.webClient = webClient;
 		this.loanStatus = loanStatus;
 		this.counterparty = counterparty;
@@ -70,36 +67,25 @@ public class SearchLoansTask implements Runnable, Comparator<Loan> {
 					continue;
 				}
 
-				String borrowerSettlement = "NONE";
-				String lenderSettlement = "NONE";
-				List<PartySettlementInstruction> settlementInstructions = loan.getSettlement();
-				if (settlementInstructions != null) {
-					for (PartySettlementInstruction settlementInstruction : settlementInstructions) {
-						if (PartyRole.BORROWER.equals(settlementInstruction.getPartyRole())) {
-							borrowerSettlement = settlementInstruction.getSettlementStatus().toString();
-						} else if (PartyRole.LENDER.equals(settlementInstruction.getPartyRole())) {
-							lenderSettlement = settlementInstruction.getSettlementStatus().toString();
-						}
-
-					}
-				}
-
 				if (rows % 15 == 0) {
 					printHeader();
+				}
+
+				Double mark = null;
+				if (loan.getTrade().getCollateral().getMark() != null) {
+					mark = loan.getTrade().getCollateral().getMark().getMarkValue();
 				}
 
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getLoanId(), 40));
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getLoanStatus().toString(), 12));
 
 				System.out.print(ConsoleOutputUtil.padSpaces(borrower, 15));
-				System.out.print(ConsoleOutputUtil.padSpaces(borrowerSettlement, 14));
 				System.out.print(ConsoleOutputUtil.padSpaces(lender, 15));
-				System.out.print(ConsoleOutputUtil.padSpaces(lenderSettlement, 14));
 
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getTrade().getTradeDate(), 15));
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getTrade().getInstrument().getTicker(), 10));
-				System.out.print(ConsoleOutputUtil.padSpaces(loan.getTrade().getQuantity(), 15));
 				System.out.print(ConsoleOutputUtil.padSpaces(loan.getTrade().getOpenQuantity(), 15));
+				System.out.print(ConsoleOutputUtil.padSpaces(mark, 15));
 				System.out.println();
 
 				rows++;
@@ -113,20 +99,16 @@ public class SearchLoansTask implements Runnable, Comparator<Loan> {
 		System.out.print(ConsoleOutputUtil.padSpaces("Loan Id", 40));
 		System.out.print(ConsoleOutputUtil.padSpaces("Status", 12));
 		System.out.print(ConsoleOutputUtil.padSpaces("Borrower", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("Settlement", 14));
 		System.out.print(ConsoleOutputUtil.padSpaces("Lender", 15));
-		System.out.print(ConsoleOutputUtil.padSpaces("Settlement", 14));
 		System.out.print(ConsoleOutputUtil.padSpaces("Trade Date", 15));
 		System.out.print(ConsoleOutputUtil.padSpaces("Ticker", 10));
-		System.out.print(ConsoleOutputUtil.padSpaces("Orig Quantity", 15));
 		System.out.print(ConsoleOutputUtil.padSpaces("Open Quantity", 15));
+		System.out.print(ConsoleOutputUtil.padSpaces("Mark", 15));
 		System.out.println();
 		System.out.print(ConsoleOutputUtil.padDivider(40));
 		System.out.print(ConsoleOutputUtil.padDivider(12));
 		System.out.print(ConsoleOutputUtil.padDivider(15));
-		System.out.print(ConsoleOutputUtil.padDivider(14));
 		System.out.print(ConsoleOutputUtil.padDivider(15));
-		System.out.print(ConsoleOutputUtil.padDivider(14));
 		System.out.print(ConsoleOutputUtil.padDivider(15));
 		System.out.print(ConsoleOutputUtil.padDivider(10));
 		System.out.print(ConsoleOutputUtil.padDivider(15));
