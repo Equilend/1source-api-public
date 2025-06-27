@@ -40,10 +40,22 @@ public class ConsoleOutputUtil {
 	}
 
 	public static String padSpaces(String field, int maxLength) {
+		return padSpaces(field, maxLength, false);
+	}
 
-		String ret = (field == null ? "" : field) + spaces;
+	public static String padSpaces(String field, int maxLength, boolean leftPad) {
 
-		return ret.substring(0, maxLength) + " ";
+		String ret;
+		
+		if (leftPad) {
+			ret = spaces + (field == null ? "" : field.toString());
+			ret = ret.substring(ret.length() - maxLength) + " ";
+			} else {
+			ret = (field == null ? "" : field) + spaces;
+			ret = ret.substring(0, maxLength) + " ";
+		}
+
+		return ret;
 	}
 
 	public static String padSpaces(Integer field, int maxLength) {

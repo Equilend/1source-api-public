@@ -35,7 +35,8 @@ public class RESTUtil {
 
 				logger.debug("GET: " + url + " with Payload: " + json);
 
-				o = webClient.method(HttpMethod.GET).uri(url).body(Mono.just(json), String.class)
+				o = webClient.method(HttpMethod.GET).uri(url).contentType(MediaType.APPLICATION_JSON)
+						.body(Mono.just(json), String.class)
 						.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve()
 						.onStatus(HttpStatusCode::is4xxClientError, response -> {
 							System.out.println(response.statusCode().toString());

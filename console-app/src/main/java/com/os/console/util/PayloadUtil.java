@@ -635,14 +635,14 @@ public class PayloadUtil {
 		AggregationSum aggregationSumCollateral = new AggregationSum();
 		AggregationField aggregationFieldCollateral = new AggregationField();
 		aggregationFieldCollateral.setField((new LoanContractCollateralValue()).getFieldName());
-		aggregationFieldCollateral.setFormat("$###,###.00");
+		aggregationFieldCollateral.setFormat("###,###.00");
 		aggregationSumCollateral.setSum(aggregationFieldCollateral);
 		markToMarketAggregationRequestFilterAggregationFields.setTotal_collateral_today(aggregationSumCollateral);
 
 		AggregationSum aggregationSumMark = new AggregationSum();
 		AggregationField aggregationFieldMark = new AggregationField();
 		aggregationFieldMark.setField((new LoanContractMarkValue()).getFieldName());
-		aggregationFieldMark.setFormat("$###,###.00");
+		aggregationFieldMark.setFormat("###,###.00");
 		aggregationSumMark.setSum(aggregationFieldMark);
 		markToMarketAggregationRequestFilterAggregationFields.setTotal_mark_today(aggregationSumMark);
 		
