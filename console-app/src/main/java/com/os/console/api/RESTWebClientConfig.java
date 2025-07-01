@@ -33,7 +33,7 @@ import reactor.netty.resources.ConnectionProvider;
 public class RESTWebClientConfig {
 
 	@Autowired
-	ConsoleConfig authConfig;
+	ApplicationConfig authConfig;
 
 	@Bean
 	public WebClient restWebClient() {

@@ -3,11 +3,12 @@ package com.os.console;
 import java.io.BufferedReader;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Loan;
 import com.os.client.model.ReturnProposal;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.CancelReturnTask;
 import com.os.console.api.tasks.ProposeReturnTask;
 import com.os.console.api.tasks.SearchLoanReturnTask;
@@ -18,6 +19,9 @@ import com.os.console.util.PayloadUtil;
 public class LoanReturnsConsole extends AbstractConsole {
 
 	Loan loan;
+
+	@Autowired
+	WebClient restWebClient;
 
 	public LoanReturnsConsole(Loan loan) {
 		this.loan = loan;
@@ -30,16 +34,16 @@ public class LoanReturnsConsole extends AbstractConsole {
 			return false;
 		}
 		
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/returns > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/returns > ");
 		
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing all returns...");
-			SearchLoanReturnsTask searchLoanReturnsTask = new SearchLoanReturnsTask(webClient, loan);
+			SearchLoanReturnsTask searchLoanReturnsTask = new SearchLoanReturnsTask(restWebClient, loan);
 			Thread taskT = new Thread(searchLoanReturnsTask);
 			taskT.run();
 			try {
@@ -55,7 +59,7 @@ public class LoanReturnsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(returnId).toString().equals(returnId)) {
 						System.out.print("Retrieving return " + returnId + "...");
-						SearchLoanReturnTask searchLoanReturnTask = new SearchLoanReturnTask(webClient,
+						SearchLoanReturnTask searchLoanReturnTask = new SearchLoanReturnTask(restWebClient,
 								loan, returnId);
 						Thread taskT = new Thread(searchLoanReturnTask);
 						taskT.run();
@@ -67,7 +71,7 @@ public class LoanReturnsConsole extends AbstractConsole {
 						if (searchLoanReturnTask.getReturn() != null) {
 							LoanReturnConsole loanReturnConsole = new LoanReturnConsole(loan,
 									searchLoanReturnTask.getReturn());
-							loanReturnConsole.execute(consoleIn, webClient);
+							loanReturnConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -88,8 +92,8 @@ public class LoanReturnsConsole extends AbstractConsole {
 
 					ConsoleOutputUtil.printObject(returnProposal);
 
-					ProposeReturnTask proposeReturnTask = new ProposeReturnTask(webClient, loan, returnProposal,
-							ConsoleConfig.ACTING_PARTY);
+					ProposeReturnTask proposeReturnTask = new ProposeReturnTask(restWebClient, loan, returnProposal,
+							ApplicationConfig.ACTING_PARTY);
 					Thread taskT = new Thread(proposeReturnTask);
 					taskT.run();
 					try {
@@ -109,7 +113,7 @@ public class LoanReturnsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(returnId).toString().equals(returnId)) {
 						System.out.print("Cancelling return " + returnId + "...");
-						CancelReturnTask cancelReturnTask = new CancelReturnTask(webClient, loan.getLoanId(),
+						CancelReturnTask cancelReturnTask = new CancelReturnTask(restWebClient, loan.getLoanId(),
 								returnId);
 						Thread taskT = new Thread(cancelReturnTask);
 						taskT.run();

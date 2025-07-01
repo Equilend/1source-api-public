@@ -22,7 +22,7 @@ public class ScheduledKeepAlive {
 	private static final Logger logger = LoggerFactory.getLogger(ScheduledKeepAlive.class);
 
 	@Autowired
-	ConsoleConfig authConfig;
+	ApplicationConfig authConfig;
 
 	public void refreshAuthToken() {
 
@@ -30,11 +30,11 @@ public class ScheduledKeepAlive {
 		formData.add("grant_type", "refresh_token");
 		formData.add("client_id", authConfig.getAuth_client_id());
 		formData.add("client_secret", authConfig.getAuth_client_secret());
-		formData.add("refresh_token", ConsoleConfig.TOKEN.getRefresh_token());
+		formData.add("refresh_token", ApplicationConfig.TOKEN.getRefresh_token());
 
 		WebClient authClient = WebClient.create(authConfig.getAuth_uri());
 
-		ConsoleConfig.TOKEN = authClient.post().uri("/auth/realms/1Source/protocol/openid-connect/token")
+		ApplicationConfig.TOKEN = authClient.post().uri("/auth/realms/1Source/protocol/openid-connect/token")
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED).body(BodyInserters.fromFormData(formData))
 				.retrieve().bodyToMono(AuthToken.class).block();
 
@@ -43,8 +43,8 @@ public class ScheduledKeepAlive {
 	@Scheduled(fixedRate = 5000)
 	public void sendMessage() {
 
-		if (ConsoleConfig.TOKEN != null) {
-			Long tokenTtl = (ConsoleConfig.TOKEN.getCreateMillis() + ConsoleConfig.TOKEN.getExpires_in() * 1000)
+		if (ApplicationConfig.TOKEN != null) {
+			Long tokenTtl = (ApplicationConfig.TOKEN.getCreateMillis() + ApplicationConfig.TOKEN.getExpires_in() * 1000)
 					- System.currentTimeMillis();
 			logger.debug("Token TTL: " + tokenTtl);
 			if (tokenTtl <= 5000) {

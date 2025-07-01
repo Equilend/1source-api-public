@@ -1,7 +1,9 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
+
+import com.os.console.api.search.model.Term;
 
 public class MarkToMarketAggregationRequestFilterDef {
-	MarkToMarketAggregationRequestFilterTerm filter;
+	Term filter;
 	MarkToMarketAggregationRequestFilterAggregation aggs;
 
 	public MarkToMarketAggregationRequestFilterAggregation getAggs() {
@@ -12,11 +14,11 @@ public class MarkToMarketAggregationRequestFilterDef {
 		this.aggs = aggs;
 	}
 
-	public MarkToMarketAggregationRequestFilterTerm getFilter() {
+	public Term getFilter() {
 		return filter;
 	}
 
-	public void setFilter(MarkToMarketAggregationRequestFilterTerm filter) {
+	public void setFilter(Term filter) {
 		this.filter = filter;
 	}
 

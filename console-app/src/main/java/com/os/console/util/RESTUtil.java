@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 
 import com.os.client.model.LedgerResponse;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.LedgerException;
 
 import reactor.core.publisher.Mono;
@@ -37,7 +37,7 @@ public class RESTUtil {
 
 				o = webClient.method(HttpMethod.GET).uri(url).contentType(MediaType.APPLICATION_JSON)
 						.body(Mono.just(json), String.class)
-						.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve()
+						.headers(h -> h.setBearerAuth(ApplicationConfig.TOKEN.getAccess_token())).retrieve()
 						.onStatus(HttpStatusCode::is4xxClientError, response -> {
 							System.out.println(response.statusCode().toString());
 							return response.bodyToMono(LedgerException.class);
@@ -46,7 +46,7 @@ public class RESTUtil {
 
 				logger.debug("GET: " + url);
 
-				o = webClient.get().uri(url).headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token()))
+				o = webClient.get().uri(url).headers(h -> h.setBearerAuth(ApplicationConfig.TOKEN.getAccess_token()))
 						.retrieve().onStatus(HttpStatusCode::is4xxClientError, response -> {
 							System.out.println(response.statusCode().toString());
 							return response.bodyToMono(LedgerException.class);
@@ -71,7 +71,7 @@ public class RESTUtil {
 		logger.debug("PATCH: " + url + " with Payload: " + json);
 
 		ResponseSpec spec = webClient.patch().uri(url).contentType(MediaType.APPLICATION_JSON).bodyValue(json)
-				.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve();
+				.headers(h -> h.setBearerAuth(ApplicationConfig.TOKEN.getAccess_token())).retrieve();
 
 		makeRequest(spec);
 	}
@@ -90,12 +90,12 @@ public class RESTUtil {
 			logger.debug("POST: " + url + " with Payload: " + json);
 
 			spec = webClient.post().uri(url).contentType(MediaType.APPLICATION_JSON).bodyValue(json)
-					.headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token())).retrieve();
+					.headers(h -> h.setBearerAuth(ApplicationConfig.TOKEN.getAccess_token())).retrieve();
 		} else {
 
 			logger.debug("POST: " + url);
 
-			spec = webClient.post().uri(url).headers(h -> h.setBearerAuth(ConsoleConfig.TOKEN.getAccess_token()))
+			spec = webClient.post().uri(url).headers(h -> h.setBearerAuth(ApplicationConfig.TOKEN.getAccess_token()))
 					.retrieve();
 
 		}

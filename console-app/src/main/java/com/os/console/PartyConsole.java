@@ -2,10 +2,8 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
-import org.springframework.web.reactive.function.client.WebClient;
-
 import com.os.client.model.Party;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.util.ConsoleOutputUtil;
 
 public class PartyConsole extends AbstractConsole {
@@ -23,12 +21,12 @@ public class PartyConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /parties/" + party.getPartyId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /parties/" + party.getPartyId() + " > ");
 
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 

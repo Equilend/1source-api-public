@@ -5,9 +5,10 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveDelegationTask;
 import com.os.console.api.tasks.CancelDelegationTask;
 import com.os.console.api.tasks.DeclineDelegationTask;
@@ -17,18 +18,21 @@ import com.os.console.api.tasks.SearchPartyTask;
 
 public class DelegationsConsole extends AbstractConsole {
 
+	@Autowired
+	WebClient restWebClient;
+	
 	private static final Logger logger = LoggerFactory.getLogger(DelegationsConsole.class);
 
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /delegations > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /delegations > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing all delegations...");
-			SearchDelegationsTask searchDelegationsTask = new SearchDelegationsTask(webClient);
+			SearchDelegationsTask searchDelegationsTask = new SearchDelegationsTask(restWebClient);
 			Thread taskT = new Thread(searchDelegationsTask);
 			taskT.run();
 			try {
@@ -44,7 +48,7 @@ public class DelegationsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(delegationId).toString().equals(delegationId)) {
 						System.out.print("Retrieving delegation " + delegationId + "...");
-						SearchDelegationTask searchDelegationTask = new SearchDelegationTask(webClient, delegationId);
+						SearchDelegationTask searchDelegationTask = new SearchDelegationTask(restWebClient, delegationId);
 						Thread taskT = new Thread(searchDelegationTask);
 						taskT.run();
 						try {
@@ -54,7 +58,7 @@ public class DelegationsConsole extends AbstractConsole {
 						}
 						if (searchDelegationTask.getDelegation() != null) {
 							DelegationConsole delegationConsole = new DelegationConsole(searchDelegationTask.getDelegation());
-							delegationConsole.execute(consoleIn, webClient);
+							delegationConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -72,7 +76,7 @@ public class DelegationsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(delegationId).toString().equalsIgnoreCase(delegationId)) {
 						System.out.print("Approving delegation " + delegationId + "...");
-						ApproveDelegationTask approveDelegationTask = new ApproveDelegationTask(webClient,
+						ApproveDelegationTask approveDelegationTask = new ApproveDelegationTask(restWebClient,
 								delegationId);
 						Thread taskT = new Thread(approveDelegationTask);
 						taskT.run();
@@ -96,7 +100,7 @@ public class DelegationsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(delegationId).toString().equalsIgnoreCase(delegationId)) {
 						System.out.print("Canceling delegation " + delegationId + "...");
-						CancelDelegationTask cancelDelegationTask = new CancelDelegationTask(webClient, delegationId);
+						CancelDelegationTask cancelDelegationTask = new CancelDelegationTask(restWebClient, delegationId);
 						Thread taskT = new Thread(cancelDelegationTask);
 						taskT.run();
 						try {
@@ -119,7 +123,7 @@ public class DelegationsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(delegationId).toString().equalsIgnoreCase(delegationId)) {
 						System.out.print("Declining delegation " + delegationId + "...");
-						DeclineDelegationTask declineDelegationTask = new DeclineDelegationTask(webClient,
+						DeclineDelegationTask declineDelegationTask = new DeclineDelegationTask(restWebClient,
 								delegationId);
 						Thread taskT = new Thread(declineDelegationTask);
 						taskT.run();
@@ -138,14 +142,14 @@ public class DelegationsConsole extends AbstractConsole {
 		} else if (args[0].equals("P")) {
 			if (args.length != 2 || args[1].length() > 100) {
 				System.out.println("Invalid Party Id");
-			} else if (ConsoleConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(args[1])) {
+			} else if (ApplicationConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(args[1])) {
 				System.out.println("You cannot propose a delegation to yourself");
 			} else {
 
 				String partyId = args[1];
 				try {
 					System.out.print("Verifying party " + partyId + "...");
-					SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+					SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, partyId);
 					Thread taskT = new Thread(searchPartyTask);
 					taskT.run();
 					try {
@@ -155,7 +159,7 @@ public class DelegationsConsole extends AbstractConsole {
 					}
 					if (searchPartyTask.getParty() != null) {
 						DelegationProposalConsole delegationProposalConsole = new DelegationProposalConsole(searchPartyTask.getParty());
-						delegationProposalConsole.execute(consoleIn, webClient);
+						delegationProposalConsole.execute(consoleIn);
 					}
 				} catch (Exception u) {
 					logger.error("Problem verifying party", u);

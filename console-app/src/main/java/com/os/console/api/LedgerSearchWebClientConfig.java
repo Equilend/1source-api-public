@@ -1,6 +1,7 @@
 package com.os.console.api;
 
 import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ import reactor.netty.resources.ConnectionProvider;
 public class LedgerSearchWebClientConfig {
 
 	@Autowired
-	ConsoleConfig authConfig;
+	ApplicationConfig authConfig;
 
 	@Bean
 	public WebClient ledgerSearchWebClient() {

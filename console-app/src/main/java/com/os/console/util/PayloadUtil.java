@@ -72,21 +72,33 @@ import com.os.client.model.TradeAgreement;
 import com.os.client.model.TransactingParties;
 import com.os.client.model.TransactingParty;
 import com.os.client.model.Venues;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.search.model.AggregationDefTerms;
 import com.os.console.api.search.model.AggregationField;
 import com.os.console.api.search.model.AggregationSum;
-import com.os.console.api.search.model.MarkToMarketAggregationRequest;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilter;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregation;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregationDef;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterAggregationFields;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterDef;
-import com.os.console.api.search.model.MarkToMarketAggregationRequestFilterTerm;
+import com.os.console.api.search.model.BooleanQuery;
+import com.os.console.api.search.model.Query;
+import com.os.console.api.search.model.Should;
+import com.os.console.api.search.model.Term;
 import com.os.console.api.search.model.fields.LoanContractBorrower;
+import com.os.console.api.search.model.fields.LoanContractBorrowerInternalRef;
 import com.os.console.api.search.model.fields.LoanContractCollateralCurrency;
 import com.os.console.api.search.model.fields.LoanContractCollateralValue;
+import com.os.console.api.search.model.fields.LoanContractLenderInternalRef;
 import com.os.console.api.search.model.fields.LoanContractMarkValue;
+import com.os.console.api.search.model.fields.LoanContractVenueRefKey;
+import com.os.console.api.search.model.fields.LoanPendingBorrowerInternalRef;
+import com.os.console.api.search.model.fields.LoanPendingLenderInternalRef;
+import com.os.console.api.search.model.fields.LoanPendingVenueRefKey;
+import com.os.console.api.search.model.fields.LoanProposalBorrowerInternalRef;
+import com.os.console.api.search.model.fields.LoanProposalLenderInternalRef;
+import com.os.console.api.search.model.fields.LoanProposalVenueRefKey;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequest;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequestFilter;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequestFilterAggregation;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequestFilterAggregationDef;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequestFilterAggregationFields;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationRequestFilterDef;
 
 public class PayloadUtil {
 
@@ -189,7 +201,7 @@ public class PayloadUtil {
 		loanProposal.setTrade(trade);
 
 		List<PartySettlementInstruction> settlementInstructions = new ArrayList<>();
-		settlementInstructions.add(ConsoleConfig.SETTLEMENT_INSTRUCTIONS);
+		settlementInstructions.add(ApplicationConfig.SETTLEMENT_INSTRUCTIONS);
 		loanProposal.setSettlement(settlementInstructions);
 
 		return loanProposal;
@@ -201,12 +213,12 @@ public class PayloadUtil {
 
 		proposalApproval.setInternalReference(UUID.randomUUID().toString());
 
-		if (PartyRole.LENDER.equals(ConsoleConfig.ACTING_AS)) {
+		if (PartyRole.LENDER.equals(ApplicationConfig.ACTING_AS)) {
 			proposalApproval.setRoundingRule(10);
 			proposalApproval.setRoundingMode(RoundingMode.ALWAYSUP);
 		}
 
-		proposalApproval.setSettlement(ConsoleConfig.SETTLEMENT_INSTRUCTIONS);
+		proposalApproval.setSettlement(ApplicationConfig.SETTLEMENT_INSTRUCTIONS);
 
 		return proposalApproval;
 	}
@@ -436,7 +448,7 @@ public class PayloadUtil {
 		boolean canAct = false;
 		PartyRole partyRole = null;
 		for (TransactingParty transactingParty : parties) {
-			if (ConsoleConfig.ACTING_PARTY.equals(transactingParty.getParty())) {
+			if (ApplicationConfig.ACTING_PARTY.equals(transactingParty.getParty())) {
 				canAct = true;
 				partyRole = transactingParty.getPartyRole();
 				break;
@@ -615,7 +627,7 @@ public class PayloadUtil {
 		
 		MarkToMarketAggregationRequestFilterDef markToMarketAggregationRequestFilterDef = new MarkToMarketAggregationRequestFilterDef();
 		
-		MarkToMarketAggregationRequestFilterTerm markToMarketAggregationRequestFilterTerm = new MarkToMarketAggregationRequestFilterTerm();
+		Term markToMarketAggregationRequestFilterTerm = new Term();
 		LoanContractCollateralCurrency loanContractCollateralCurrency = new LoanContractCollateralCurrency();
 		loanContractCollateralCurrency.setCollateralCurrency(currencyCd.getValue());
 		markToMarketAggregationRequestFilterTerm.setTerm(loanContractCollateralCurrency);
@@ -658,4 +670,98 @@ public class PayloadUtil {
 		
 		return markToMarketAggregationRequest;
 	}
+	
+	public static Query createInternalRefIdQuery(String internalRefId) {
+		
+		Query query = new Query();
+		
+		BooleanQuery bool = new BooleanQuery();
+		
+		Should should = new Should();
+		
+		ArrayList<Term> terms = new ArrayList<>();
+		
+		Term loanContractBorrowerInternalRefTerm = new Term();
+		LoanContractBorrowerInternalRef loanContractBorrowerInternalRef = new LoanContractBorrowerInternalRef();
+		loanContractBorrowerInternalRef.setInternalRef(internalRefId);
+		loanContractBorrowerInternalRefTerm.setTerm(loanContractBorrowerInternalRef);
+		terms.add(loanContractBorrowerInternalRefTerm);
+
+		Term loanContractLenderInternalRefTerm = new Term();
+		LoanContractLenderInternalRef loanContractLenderInternalRef = new LoanContractLenderInternalRef();
+		loanContractLenderInternalRef.setInternalRef(internalRefId);
+		loanContractLenderInternalRefTerm.setTerm(loanContractLenderInternalRef);
+		terms.add(loanContractLenderInternalRefTerm);
+
+		Term loanPendingBorrowerInternalRefTerm = new Term();
+		LoanPendingBorrowerInternalRef loanPendingBorrowerInternalRef = new LoanPendingBorrowerInternalRef();
+		loanPendingBorrowerInternalRef.setInternalRef(internalRefId);
+		loanPendingBorrowerInternalRefTerm.setTerm(loanPendingBorrowerInternalRef);
+		terms.add(loanPendingBorrowerInternalRefTerm);
+
+		Term loanPendingLenderInternalRefTerm = new Term();
+		LoanPendingLenderInternalRef loanPendingLenderInternalRef = new LoanPendingLenderInternalRef();
+		loanPendingLenderInternalRef.setInternalRef(internalRefId);
+		loanPendingLenderInternalRefTerm.setTerm(loanPendingLenderInternalRef);
+		terms.add(loanPendingLenderInternalRefTerm);
+
+		Term loanProposalBorrowerInternalRefTerm = new Term();
+		LoanProposalBorrowerInternalRef loanProposalBorrowerInternalRef = new LoanProposalBorrowerInternalRef();
+		loanProposalBorrowerInternalRef.setInternalRef(internalRefId);
+		loanProposalBorrowerInternalRefTerm.setTerm(loanProposalBorrowerInternalRef);
+		terms.add(loanProposalBorrowerInternalRefTerm);
+
+		Term loanProposalLenderInternalRefTerm = new Term();
+		LoanProposalLenderInternalRef loanProposalLenderInternalRef = new LoanProposalLenderInternalRef();
+		loanProposalLenderInternalRef.setInternalRef(internalRefId);
+		loanProposalLenderInternalRefTerm.setTerm(loanProposalLenderInternalRef);
+		terms.add(loanProposalLenderInternalRefTerm);
+
+		should.setShould(terms);
+		
+		bool.setBool(should);
+		
+		query.setQuery(bool);
+		
+		return query;
+	}
+
+	public static Query createVenueRefKeyQuery(String venueRefKey) {
+		
+		Query query = new Query();
+		
+		BooleanQuery bool = new BooleanQuery();
+		
+		Should should = new Should();
+		
+		
+		ArrayList<Term> terms = new ArrayList<>();
+		
+		Term loanContractVenueRefKeyTerm = new Term();
+		LoanContractVenueRefKey loanContractVenueRefKey = new LoanContractVenueRefKey();
+		loanContractVenueRefKey.setVenueRefKey(venueRefKey);
+		loanContractVenueRefKeyTerm.setTerm(loanContractVenueRefKey);
+		terms.add(loanContractVenueRefKeyTerm);
+
+		Term loanPendingVenueRefKeyTerm = new Term();
+		LoanPendingVenueRefKey loanPendingVenueRefKey = new LoanPendingVenueRefKey();
+		loanPendingVenueRefKey.setVenueRefKey(venueRefKey);
+		loanPendingVenueRefKeyTerm.setTerm(loanPendingVenueRefKey);
+		terms.add(loanPendingVenueRefKeyTerm);
+
+		Term loanProposalVenueRefKeyTerm = new Term();
+		LoanProposalVenueRefKey loanProposalVenueRefKey = new LoanProposalVenueRefKey();
+		loanProposalVenueRefKey.setVenueRefKey(venueRefKey);
+		loanProposalVenueRefKeyTerm.setTerm(loanProposalVenueRefKey);
+		terms.add(loanProposalVenueRefKeyTerm);
+
+		should.setShould(terms);
+		
+		bool.setBool(should);
+		
+		query.setQuery(bool);
+		
+		return query;
+	}
+
 }

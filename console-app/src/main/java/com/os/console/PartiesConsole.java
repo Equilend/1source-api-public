@@ -2,29 +2,33 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.PartyType;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.SearchPartiesTask;
 import com.os.console.api.tasks.SearchPartyTask;
 
 public class PartiesConsole extends AbstractConsole {
+
+	@Autowired
+	WebClient restWebClient;
 
 	public PartiesConsole() {
 
 	}
 
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /parties > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /parties > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing parties...");
-			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(webClient, null, null);
+			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(restWebClient, null, null);
 			Thread taskT = new Thread(searchPartiesTask);
 			taskT.run();
 			try {
@@ -38,7 +42,7 @@ public class PartiesConsole extends AbstractConsole {
 				partyType = PartyType.fromValue(args[1].toUpperCase());
 			}
 			System.out.print("Listing all " + (partyType != null ? (partyType.getValue() + " ") : "") + "parties...");
-			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(webClient, partyType, null);
+			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(restWebClient, partyType, null);
 			Thread taskT = new Thread(searchPartiesTask);
 			taskT.run();
 			try {
@@ -53,7 +57,7 @@ public class PartiesConsole extends AbstractConsole {
 				gleifLei = args[1];
 			}
 			System.out.print("Listing all " + (gleifLei != null ? (gleifLei + " ") : "") + "parties...");
-			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(webClient, null, gleifLei);
+			SearchPartiesTask searchPartiesTask = new SearchPartiesTask(restWebClient, null, gleifLei);
 			Thread taskT = new Thread(searchPartiesTask);
 			taskT.run();
 			try {
@@ -68,7 +72,7 @@ public class PartiesConsole extends AbstractConsole {
 				String partyId = args[1];
 				try {
 					System.out.print("Searching for case sensative party " + partyId + "...");
-					SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+					SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, partyId);
 					Thread taskT = new Thread(searchPartyTask);
 					taskT.run();
 					try {
@@ -78,7 +82,7 @@ public class PartiesConsole extends AbstractConsole {
 					}
 					if (searchPartyTask.getParty() != null) {
 						PartyConsole partyConsole = new PartyConsole(searchPartyTask.getParty());
-						partyConsole.execute(consoleIn, webClient);
+						partyConsole.execute(consoleIn);
 					}
 				} catch (Exception u) {
 					System.out.println("Invalid party id");

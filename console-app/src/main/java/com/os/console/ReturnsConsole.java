@@ -3,26 +3,30 @@ package com.os.console;
 import java.io.BufferedReader;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.ModelReturn;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.CancelReturnTask;
 import com.os.console.api.tasks.SearchReturnTask;
 import com.os.console.api.tasks.SearchReturnsTask;
 
 public class ReturnsConsole extends AbstractConsole {
 
+	@Autowired
+	WebClient restWebClient;
+
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /returns > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /returns > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing all returns...");
-			SearchReturnsTask searchReturnsTask = new SearchReturnsTask(webClient);
+			SearchReturnsTask searchReturnsTask = new SearchReturnsTask(restWebClient);
 			Thread taskT = new Thread(searchReturnsTask);
 			taskT.run();
 			try {
@@ -38,7 +42,7 @@ public class ReturnsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(returnId).toString().equals(returnId)) {
 						System.out.print("Retrieving return " + returnId + "...");
-						SearchReturnTask searchReturnTask = new SearchReturnTask(webClient, returnId);
+						SearchReturnTask searchReturnTask = new SearchReturnTask(restWebClient, returnId);
 						Thread taskT = new Thread(searchReturnTask);
 						taskT.run();
 						try {
@@ -48,7 +52,7 @@ public class ReturnsConsole extends AbstractConsole {
 						}
 						if (searchReturnTask.getReturn() != null) {
 							ReturnConsole returnConsole = new ReturnConsole(searchReturnTask.getReturn());
-							returnConsole.execute(consoleIn, webClient);
+							returnConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -65,7 +69,7 @@ public class ReturnsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(returnId).toString().equals(returnId)) {
 						System.out.print("Retrieving return " + returnId + "...");
-						SearchReturnTask searchReturnTask = new SearchReturnTask(webClient, returnId);
+						SearchReturnTask searchReturnTask = new SearchReturnTask(restWebClient, returnId);
 						Thread taskT = new Thread(searchReturnTask);
 						taskT.run();
 						try {
@@ -76,7 +80,7 @@ public class ReturnsConsole extends AbstractConsole {
 						if (searchReturnTask.getReturn() != null) {
 							ModelReturn modelReturn = searchReturnTask.getReturn();
 							System.out.print("Canceling return...");
-							CancelReturnTask cancelReturnTask = new CancelReturnTask(webClient, modelReturn.getLoanId(), modelReturn.getReturnId());
+							CancelReturnTask cancelReturnTask = new CancelReturnTask(restWebClient, modelReturn.getLoanId(), modelReturn.getReturnId());
 							Thread taskS = new Thread(cancelReturnTask);
 							taskS.run();
 							try {

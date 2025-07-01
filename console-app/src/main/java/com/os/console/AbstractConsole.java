@@ -5,9 +5,7 @@ import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 
 public abstract class AbstractConsole {
 
@@ -15,9 +13,9 @@ public abstract class AbstractConsole {
 
 	protected abstract void printMenu();
 	protected abstract boolean prompt();
-	protected abstract void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient);
+	protected abstract void handleArgs(String args[], BufferedReader consoleIn);
 
-	public void execute(BufferedReader consoleIn, WebClient webClient) {
+	public void execute(BufferedReader consoleIn) {
 
 		String input = null;
 
@@ -37,7 +35,7 @@ public abstract class AbstractConsole {
 				} else if (goBackMenu(args[0])) {
 					break;
 				} else {
-					handleArgs(args, consoleIn, webClient);
+					handleArgs(args, consoleIn);
 				}
 				
 				if (!prompt()) {
@@ -102,7 +100,7 @@ public abstract class AbstractConsole {
 			System.exit(0);
 		} else if (command.equals("WHOAMI")) {
 			System.out.println();
-			System.out.println(ConsoleConfig.ACTING_PARTY + " acting as " + ConsoleConfig.ACTING_AS);
+			System.out.println(ApplicationConfig.ACTING_PARTY + " acting as " + ApplicationConfig.ACTING_AS);
 			System.out.println();
 			prompt();
 			systemCommand = true;

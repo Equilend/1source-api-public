@@ -8,7 +8,7 @@ import com.os.client.model.PartyRole;
 import com.os.client.model.PartySettlementInstruction;
 
 @ConfigurationProperties(prefix = "com.os.config")
-public class ConsoleConfig {
+public class ApplicationConfig {
 
 	public static AuthToken TOKEN = null;
 	public static Party ACTING_PARTY = null;
@@ -48,7 +48,7 @@ public class ConsoleConfig {
 	private String counterparty_settlement_custodianAcct;
 
 	@ConstructorBinding
-	public ConsoleConfig(String api_uri, String auth_uri, String auth_client_id, String auth_client_secret,
+	public ApplicationConfig(String api_uri, String auth_uri, String auth_client_id, String auth_client_secret,
 			String auth_username, String auth_password, String auth_party, String auth_actAs,
 			String settlement_internalAcctCd, String settlement_settlementBic, String settlement_localAgentBic,
 			String settlement_localAgentName, String settlement_localAgentAcct, String settlement_dtcParticipantNumber,

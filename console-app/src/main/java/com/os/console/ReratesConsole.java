@@ -3,10 +3,11 @@ package com.os.console;
 import java.io.BufferedReader;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Rerate;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveRerateTask;
 import com.os.console.api.tasks.CancelRerateTask;
 import com.os.console.api.tasks.DeclineRerateTask;
@@ -16,16 +17,19 @@ import com.os.console.util.PayloadUtil;
 
 public class ReratesConsole extends AbstractConsole {
 
+	@Autowired
+	WebClient restWebClient;
+
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /rerates > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /rerates > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing all rerates...");
-			SearchReratesTask searchReratesTask = new SearchReratesTask(webClient);
+			SearchReratesTask searchReratesTask = new SearchReratesTask(restWebClient);
 			Thread taskT = new Thread(searchReratesTask);
 			taskT.run();
 			try {
@@ -41,7 +45,7 @@ public class ReratesConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Retrieving rerate " + rerateId + "...");
-						SearchRerateTask searchRerateTask = new SearchRerateTask(webClient, rerateId);
+						SearchRerateTask searchRerateTask = new SearchRerateTask(restWebClient, rerateId);
 						Thread taskT = new Thread(searchRerateTask);
 						taskT.run();
 						try {
@@ -51,7 +55,7 @@ public class ReratesConsole extends AbstractConsole {
 						}
 						if (searchRerateTask.getRerate() != null) {
 							RerateConsole rerateConsole = new RerateConsole(searchRerateTask.getRerate());
-							rerateConsole.execute(consoleIn, webClient);
+							rerateConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -68,7 +72,7 @@ public class ReratesConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Retrieving rerate " + rerateId + "...");
-						SearchRerateTask searchRerateTask = new SearchRerateTask(webClient, rerateId);
+						SearchRerateTask searchRerateTask = new SearchRerateTask(restWebClient, rerateId);
 						Thread taskT = new Thread(searchRerateTask);
 						taskT.run();
 						try {
@@ -79,7 +83,7 @@ public class ReratesConsole extends AbstractConsole {
 						if (searchRerateTask.getRerate() != null) {
 							Rerate rerate = searchRerateTask.getRerate();
 							System.out.print("Approving rerate...");
-							ApproveRerateTask approveRerateTask = new ApproveRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId());
+							ApproveRerateTask approveRerateTask = new ApproveRerateTask(restWebClient, rerate.getLoanId(), rerate.getRerateId());
 							Thread taskS = new Thread(approveRerateTask);
 							taskS.run();
 							try {
@@ -103,7 +107,7 @@ public class ReratesConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Retrieving rerate " + rerateId + "...");
-						SearchRerateTask searchRerateTask = new SearchRerateTask(webClient, rerateId);
+						SearchRerateTask searchRerateTask = new SearchRerateTask(restWebClient, rerateId);
 						Thread taskT = new Thread(searchRerateTask);
 						taskT.run();
 						try {
@@ -114,7 +118,7 @@ public class ReratesConsole extends AbstractConsole {
 						if (searchRerateTask.getRerate() != null) {
 							Rerate rerate = searchRerateTask.getRerate();
 							System.out.print("Canceling rerate...");
-							CancelRerateTask cancelRerateTask = new CancelRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateCancelErrorResponse());
+							CancelRerateTask cancelRerateTask = new CancelRerateTask(restWebClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateCancelErrorResponse());
 							Thread taskS = new Thread(cancelRerateTask);
 							taskS.run();
 							try {
@@ -138,7 +142,7 @@ public class ReratesConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(rerateId).toString().equals(rerateId)) {
 						System.out.print("Retrieving rerate " + rerateId + "...");
-						SearchRerateTask searchRerateTask = new SearchRerateTask(webClient, rerateId);
+						SearchRerateTask searchRerateTask = new SearchRerateTask(restWebClient, rerateId);
 						Thread taskT = new Thread(searchRerateTask);
 						taskT.run();
 						try {
@@ -149,7 +153,7 @@ public class ReratesConsole extends AbstractConsole {
 						if (searchRerateTask.getRerate() != null) {
 							Rerate rerate = searchRerateTask.getRerate();
 							System.out.print("Declining rerate...");
-							DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
+							DeclineRerateTask declineRerateTask = new DeclineRerateTask(restWebClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
 							Thread taskS = new Thread(declineRerateTask);
 							taskS.run();
 							try {

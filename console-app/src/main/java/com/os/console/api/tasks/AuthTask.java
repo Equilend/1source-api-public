@@ -9,15 +9,15 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.console.api.AuthToken;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 
 public class AuthTask implements Runnable {
 
 	private static final Logger logger = LoggerFactory.getLogger(AuthTask.class);
 
-	ConsoleConfig authConfig;
+	ApplicationConfig authConfig;
 
-	public AuthTask(ConsoleConfig authConfig) {
+	public AuthTask(ApplicationConfig authConfig) {
 		this.authConfig = authConfig;
 	}
 	
@@ -42,8 +42,8 @@ public class AuthTask implements Runnable {
 	      .block();
 		
 		if (ledgerToken != null) {
-			ConsoleConfig.TOKEN = ledgerToken;
-			logger.debug("Ledger access token: " + ConsoleConfig.TOKEN.getAccess_token());
+			ApplicationConfig.TOKEN = ledgerToken;
+			logger.debug("Ledger access token: " + ApplicationConfig.TOKEN.getAccess_token());
 		} else {
 			logger.warn("Not authorized");
 		}

@@ -2,12 +2,13 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.DelegationAuthorizationType;
 import com.os.client.model.DelegationProposal;
 import com.os.client.model.Party;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ProposeDelegationTask;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.PayloadUtil;
@@ -16,6 +17,9 @@ public class DelegationProposalConsole extends AbstractConsole {
 
 	Party counterParty;
 
+	@Autowired
+	WebClient restWebClient;
+	
 	public DelegationProposalConsole(Party counterParty) {
 		this.counterParty = counterParty;
 	}
@@ -27,20 +31,20 @@ public class DelegationProposalConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /delegations/ proposal:" + counterParty.getPartyId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /delegations/ proposal:" + counterParty.getPartyId() + " > ");
 		
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("L") || args[0].equals("R") || args[0].equals("E") || args[0].equals("T")) {
 
 			if (args.length != 2 || args[1].length() > 100) {
 				System.out.println("Invalid Venue Party Id");
-			} else if (ConsoleConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(counterParty.getPartyId())) {
+			} else if (ApplicationConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(counterParty.getPartyId())) {
 				System.out.println("You cannot propose a delegation to yourself");
-			} else if (ConsoleConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(args[1])) {
+			} else if (ApplicationConfig.ACTING_PARTY.getPartyId().equalsIgnoreCase(args[1])) {
 				System.out.println("You cannot delegate to yourself");
 			} else {
 
@@ -65,7 +69,7 @@ public class DelegationProposalConsole extends AbstractConsole {
 
 					ConsoleOutputUtil.printObject(delegationProposal);
 
-					ProposeDelegationTask proposeDelegationTask = new ProposeDelegationTask(webClient,
+					ProposeDelegationTask proposeDelegationTask = new ProposeDelegationTask(restWebClient,
 							delegationProposal);
 
 					Thread taskT = new Thread(proposeDelegationTask);

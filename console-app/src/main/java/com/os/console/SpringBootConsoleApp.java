@@ -13,9 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 
 @SpringBootApplication
 @EnableScheduling
@@ -25,16 +23,13 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 	private static final Logger logger = LoggerFactory.getLogger(SpringBootConsoleApp.class);
 
 	@Autowired
-	ConsoleConfig authConfig;
-	
-	@Autowired
-	WebClient restWebClient;
+	ApplicationConfig authConfig;
 
 	@Autowired
-	WebClient openFigiWebClient;
+	LoginConsole loginConsole;
 
 	@Autowired
-	WebClient ledgerSearchWebClient;
+	LoansConsole loansConsole;
 
 	public static void main(String[] args) {
 		logger.debug("STARTING THE APPLICATION");
@@ -52,19 +47,18 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 			logger.info("args[{}]: {}", i, args[i]);
 		}
 
-		Console console = System.console();
-		
-		if (console == null) {
-			logger.warn("No console available");
-			return;
-		}
+//		Console console = System.console();
+//		
+//		if (console == null) {
+//			logger.warn("No console available");
+//			return;
+//		}
 
 		BufferedReader consoleIn = new BufferedReader(new InputStreamReader(System.in));
 
-		LoginConsole loginConsole = new LoginConsole();
-		loginConsole.login(authConfig, restWebClient, consoleIn);
+		loginConsole.login(authConfig, consoleIn);
 
-		if (ConsoleConfig.TOKEN == null || ConsoleConfig.ACTING_PARTY == null || ConsoleConfig.ACTING_AS == null) {
+		if (ApplicationConfig.TOKEN == null || ApplicationConfig.ACTING_PARTY == null || ApplicationConfig.ACTING_AS == null) {
 			System.exit(-2);
 		}
 		
@@ -72,7 +66,7 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 		System.out.println("\"?\" or \"help\" to see menu");
 		System.out.println();
 
-		execute(consoleIn, restWebClient);
+		execute(consoleIn);
 	}
 
 	@Override
@@ -92,40 +86,39 @@ public class SpringBootConsoleApp extends AbstractConsole implements CommandLine
 
 	@Override
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " > ");
 		return true;
 	}
 
 	@Override
-	protected void handleArgs(String[] args, BufferedReader consoleIn, WebClient webClient) {
+	protected void handleArgs(String[] args, BufferedReader consoleIn) {
 		
 		if (args[0].equalsIgnoreCase("l")) {
-			LoansConsole loansConsole = new LoansConsole();
-			loansConsole.execute(consoleIn, restWebClient);
+			loansConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("r")) {
 			ReturnsConsole returnsConsole = new ReturnsConsole();
-			returnsConsole.execute(consoleIn, restWebClient);
+			returnsConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("c")) {
 			RecallsConsole recallsConsole = new RecallsConsole();
-			recallsConsole.execute(consoleIn, restWebClient);
+			recallsConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("t")) {
 			ReratesConsole reratesConsole = new ReratesConsole();
-			reratesConsole.execute(consoleIn, restWebClient);
+			reratesConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("d")) {
 			DelegationsConsole delegationsConsole = new DelegationsConsole();
-			delegationsConsole.execute(consoleIn, restWebClient);
+			delegationsConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("e")) {
 			EventsConsole eventsConsole = new EventsConsole();
-			eventsConsole.execute(consoleIn, restWebClient);
+			eventsConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("p")) {
 			PartiesConsole partiesConsole = new PartiesConsole();
-			partiesConsole.execute(consoleIn, restWebClient);
+			partiesConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("f")) {
 			FigiConsole figiConsole = new FigiConsole();
-			figiConsole.execute(consoleIn, openFigiWebClient);
+			figiConsole.execute(consoleIn);
 		} else if (args[0].equalsIgnoreCase("o")) {
 			OperationsConsole operationsConsole = new OperationsConsole();
-			operationsConsole.execute(consoleIn, ledgerSearchWebClient);
+			operationsConsole.execute(consoleIn);
 		} else {
 			System.out.println("Unknown command");
 		}		

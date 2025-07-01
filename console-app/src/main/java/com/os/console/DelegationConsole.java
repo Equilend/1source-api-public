@@ -2,10 +2,11 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Delegation;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveDelegationTask;
 import com.os.console.api.tasks.CancelDelegationTask;
 import com.os.console.api.tasks.DeclineDelegationTask;
@@ -16,6 +17,9 @@ public class DelegationConsole extends AbstractConsole {
 
 	Delegation delegation;
 
+	@Autowired
+	WebClient restWebClient;
+	
 	public DelegationConsole(Delegation delegation) {
 		this.delegation = delegation;
 	}
@@ -27,11 +31,11 @@ public class DelegationConsole extends AbstractConsole {
 			return false;
 		}
 		
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /delegations/" + delegation.getDelegationId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /delegations/" + delegation.getDelegationId() + " > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 
@@ -39,7 +43,7 @@ public class DelegationConsole extends AbstractConsole {
 
 		} else if (args[0].equals("A")) {
 			System.out.print("Approving delegation...");
-			ApproveDelegationTask approveDelegationTask = new ApproveDelegationTask(webClient,
+			ApproveDelegationTask approveDelegationTask = new ApproveDelegationTask(restWebClient,
 					delegation.getDelegationId());
 			Thread taskT = new Thread(approveDelegationTask);
 			taskT.run();
@@ -48,10 +52,10 @@ public class DelegationConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshDelegation(webClient);
+			refreshDelegation();
 		} else if (args[0].equals("C")) {
 			System.out.print("Canceling delegation...");
-			CancelDelegationTask cancelDelegationTask = new CancelDelegationTask(webClient,
+			CancelDelegationTask cancelDelegationTask = new CancelDelegationTask(restWebClient,
 					delegation.getDelegationId());
 			Thread taskT = new Thread(cancelDelegationTask);
 			taskT.run();
@@ -60,10 +64,10 @@ public class DelegationConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshDelegation(webClient);
+			refreshDelegation();
 		} else if (args[0].equals("D")) {
 			System.out.print("Declining delegation...");
-			DeclineDelegationTask declineDelegationTask = new DeclineDelegationTask(webClient,
+			DeclineDelegationTask declineDelegationTask = new DeclineDelegationTask(restWebClient,
 					delegation.getDelegationId());
 			Thread taskT = new Thread(declineDelegationTask);
 			taskT.run();
@@ -72,16 +76,16 @@ public class DelegationConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshDelegation(webClient);
+			refreshDelegation();
 		} else {
 			System.out.println("Unknown command");
 		}
 	}
 
-	private void refreshDelegation(WebClient webClient) {
+	private void refreshDelegation() {
 
 		System.out.print("Refreshing delegation " + delegation.getDelegationId() + "...");
-		SearchDelegationTask searchDelegationTask = new SearchDelegationTask(webClient, delegation.getDelegationId());
+		SearchDelegationTask searchDelegationTask = new SearchDelegationTask(restWebClient, delegation.getDelegationId());
 		Thread taskT = new Thread(searchDelegationTask);
 		taskT.run();
 		try {

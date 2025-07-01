@@ -2,25 +2,25 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.EventType;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.SearchEventTask;
 import com.os.console.api.tasks.SearchEventsTask;
 
 public class EventsConsole extends AbstractConsole {
 
-	public EventsConsole() {
-
-	}
-
+	@Autowired
+	WebClient restWebClient;
+	
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /events > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /events > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		// The second arg may need to be split
 		String arg0 = args[0];
@@ -54,13 +54,13 @@ public class EventsConsole extends AbstractConsole {
 								if (eventType == null) {
 									System.out.println("Invalid Event Type");
 								} else {
-									searchEventsTask = new SearchEventsTask(webClient, days, eventType, null, null);
+									searchEventsTask = new SearchEventsTask(restWebClient, days, eventType, null, null);
 								}
 							} catch (Exception u) {
 								System.out.println("Invalid Event Type");
 							}
 						} else {
-							searchEventsTask = new SearchEventsTask(webClient, days, null, null, null);
+							searchEventsTask = new SearchEventsTask(restWebClient, days, null, null, null);
 						}
 					} else {
 						System.out.println("Invalid Days value. Maximum is 60.");
@@ -70,7 +70,7 @@ public class EventsConsole extends AbstractConsole {
 				}
 
 			} else {
-				searchEventsTask = new SearchEventsTask(webClient, null, null, null, null);
+				searchEventsTask = new SearchEventsTask(restWebClient, null, null, null, null);
 			}
 
 			if (searchEventsTask != null) {
@@ -103,13 +103,13 @@ public class EventsConsole extends AbstractConsole {
 							if (eventType == null) {
 								System.out.println("Invalid Event Type");
 							} else {
-								searchEventsTask = new SearchEventsTask(webClient, null, eventType, null, eventId);
+								searchEventsTask = new SearchEventsTask(restWebClient, null, eventType, null, eventId);
 							}
 						} catch (Exception u) {
 							System.out.println("Invalid Event Type");
 						}
 					} else {
-						searchEventsTask = new SearchEventsTask(webClient, null, null, null, eventId);
+						searchEventsTask = new SearchEventsTask(restWebClient, null, null, null, eventId);
 					}
 				} catch (Exception e) {
 					System.out.println("Invalid Event Id");
@@ -150,13 +150,13 @@ public class EventsConsole extends AbstractConsole {
 								if (eventType == null) {
 									System.out.println("Invalid Event Type");
 								} else {
-									searchEventsTask = new SearchEventsTask(webClient, null, eventType, seconds, null);
+									searchEventsTask = new SearchEventsTask(restWebClient, null, eventType, seconds, null);
 								}
 							} catch (Exception u) {
 								System.out.println("Invalid Event Type");
 							}
 						} else {
-							searchEventsTask = new SearchEventsTask(webClient, null, null, seconds, null);
+							searchEventsTask = new SearchEventsTask(restWebClient, null, null, seconds, null);
 						}
 					} else {
 						System.out.println("Invalid Seconds value. Should be less than 604800.");
@@ -187,7 +187,7 @@ public class EventsConsole extends AbstractConsole {
 				try {
 					if (Long.valueOf(eventId) != null) {
 						System.out.print("Searching for event " + eventId + "...");
-						SearchEventTask searchEventTask = new SearchEventTask(webClient, eventId);
+						SearchEventTask searchEventTask = new SearchEventTask(restWebClient, eventId);
 						Thread taskT = new Thread(searchEventTask);
 						taskT.run();
 						try {
@@ -197,7 +197,7 @@ public class EventsConsole extends AbstractConsole {
 						}
 						if (searchEventTask.getEvent() != null) {
 							EventConsole eventConsole = new EventConsole(searchEventTask.getEvent());
-							eventConsole.execute(consoleIn, webClient);
+							eventConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid event Id");

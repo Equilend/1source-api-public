@@ -4,11 +4,12 @@ import java.io.BufferedReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Loan;
 import com.os.client.model.Rerate;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveRerateTask;
 import com.os.console.api.tasks.CancelRerateTask;
 import com.os.console.api.tasks.DeclineRerateTask;
@@ -20,6 +21,9 @@ import com.os.console.util.PayloadUtil;
 public class RerateConsole extends AbstractConsole {
 
 	private static final Logger logger = LoggerFactory.getLogger(RerateConsole.class);
+
+	@Autowired
+	WebClient restWebClient;
 
 	Rerate rerate;
 
@@ -34,19 +38,19 @@ public class RerateConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /rerates/" + rerate.getRerateId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /rerates/" + rerate.getRerateId() + " > ");
 		
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 			ConsoleOutputUtil.printObject(rerate);
 		} else if (args[0].equals("A")) {
 			System.out.print("Searching for loan " + rerate.getLoanId() + "...");
 
-			SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, rerate.getLoanId());
+			SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, rerate.getLoanId());
 			Thread taskT = new Thread(searchLoanTask);
 			taskT.run();
 			try {
@@ -58,7 +62,7 @@ public class RerateConsole extends AbstractConsole {
 			if (searchLoanTask.getLoan() != null) {
 				Loan loan = searchLoanTask.getLoan();
 				System.out.print("Approving rerate...");
-				ApproveRerateTask approveRerateTask = new ApproveRerateTask(webClient, loan.getLoanId(), rerate.getRerateId());
+				ApproveRerateTask approveRerateTask = new ApproveRerateTask(restWebClient, loan.getLoanId(), rerate.getRerateId());
 				Thread taskS = new Thread(approveRerateTask);
 				taskS.run();
 				try {
@@ -66,12 +70,12 @@ public class RerateConsole extends AbstractConsole {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				refreshRerate(webClient, searchLoanTask.getLoan());
+				refreshRerate(searchLoanTask.getLoan());
 			}
 		} else if (args[0].equals("C")) {
 			System.out.print("Searching for loan " + rerate.getLoanId() + "...");
 
-			SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, rerate.getLoanId());
+			SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, rerate.getLoanId());
 			Thread taskT = new Thread(searchLoanTask);
 			taskT.run();
 			try {
@@ -82,7 +86,7 @@ public class RerateConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Canceling rerate...");
-				CancelRerateTask cancelRerateTask = new CancelRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateCancelErrorResponse());
+				CancelRerateTask cancelRerateTask = new CancelRerateTask(restWebClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateCancelErrorResponse());
 				Thread taskS = new Thread(cancelRerateTask);
 				taskS.run();
 				try {
@@ -90,12 +94,12 @@ public class RerateConsole extends AbstractConsole {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				refreshRerate(webClient, searchLoanTask.getLoan());
+				refreshRerate(searchLoanTask.getLoan());
 			}
 		} else if (args[0].equals("D")) {
 			System.out.print("Searching for loan " + rerate.getLoanId() + "...");
 
-			SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, rerate.getLoanId());
+			SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, rerate.getLoanId());
 			Thread taskT = new Thread(searchLoanTask);
 			taskT.run();
 			try {
@@ -106,7 +110,7 @@ public class RerateConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Declining rerate...");
-				DeclineRerateTask declineRerateTask = new DeclineRerateTask(webClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
+				DeclineRerateTask declineRerateTask = new DeclineRerateTask(restWebClient, rerate.getLoanId(), rerate.getRerateId(), PayloadUtil.createRerateDeclineErrorResponse(rerate));
 				Thread taskS = new Thread(declineRerateTask);
 				taskS.run();
 				try {
@@ -114,17 +118,17 @@ public class RerateConsole extends AbstractConsole {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				refreshRerate(webClient, searchLoanTask.getLoan());
+				refreshRerate(searchLoanTask.getLoan());
 			}
 		} else {
 			System.out.println("Unknown command");
 		}
 	}
 
-	private void refreshRerate(WebClient webClient, Loan loan) {
+	private void refreshRerate(Loan loan) {
 
 		System.out.print("Refreshing rerate " + rerate.getRerateId() + "...");
-		SearchLoanRerateTask searchLoanRerateTask = new SearchLoanRerateTask(webClient, loan.getLoanId(),
+		SearchLoanRerateTask searchLoanRerateTask = new SearchLoanRerateTask(restWebClient, loan.getLoanId(),
 				rerate.getRerateId());
 		Thread taskT = new Thread(searchLoanRerateTask);
 		taskT.run();

@@ -4,13 +4,14 @@ import java.io.BufferedReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.AcknowledgementType;
 import com.os.client.model.Loan;
 import com.os.client.model.Recall;
 import com.os.client.model.RecallAcknowledgement;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.AcknowledgeRecallTask;
 import com.os.console.api.tasks.CancelRecallTask;
 import com.os.console.api.tasks.SearchLoanRecallTask;
@@ -23,6 +24,10 @@ public class LoanRecallConsole extends AbstractConsole {
 	private static final Logger logger = LoggerFactory.getLogger(LoanRecallConsole.class);
 
 	private Loan loan;
+
+	@Autowired
+	WebClient restWebClient;
+
 	private Recall recall;
 
 	public LoanRecallConsole(Loan loan, Recall recall) {
@@ -40,11 +45,11 @@ public class LoanRecallConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/recalls/" + recall.getRecallId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/recalls/" + recall.getRecallId() + " > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 			ConsoleOutputUtil.printObject(recall);
@@ -65,7 +70,7 @@ public class LoanRecallConsole extends AbstractConsole {
 
 				ConsoleOutputUtil.printObject(recallAcknowledgement);
 
-				AcknowledgeRecallTask acknowledgeRecallTask = new AcknowledgeRecallTask(webClient, recall,
+				AcknowledgeRecallTask acknowledgeRecallTask = new AcknowledgeRecallTask(restWebClient, recall,
 						recallAcknowledgement);
 				Thread taskT = new Thread(acknowledgeRecallTask);
 				taskT.run();
@@ -94,7 +99,7 @@ public class LoanRecallConsole extends AbstractConsole {
 
 				ConsoleOutputUtil.printObject(recallAcknowledgement);
 
-				AcknowledgeRecallTask acknowledgeRecallTask = new AcknowledgeRecallTask(webClient, recall,
+				AcknowledgeRecallTask acknowledgeRecallTask = new AcknowledgeRecallTask(restWebClient, recall,
 						recallAcknowledgement);
 				
 				Thread taskT = new Thread(acknowledgeRecallTask);
@@ -110,7 +115,7 @@ public class LoanRecallConsole extends AbstractConsole {
 		} else if (args[0].equals("C")) {
 			System.out.print("Searching for loan " + recall.getLoanId() + "...");
 
-			SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, recall.getLoanId());
+			SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, recall.getLoanId());
 			Thread taskT = new Thread(searchLoanTask);
 			taskT.run();
 			try {
@@ -121,7 +126,7 @@ public class LoanRecallConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Canceling recall...");
-				CancelRecallTask cancelRecallTask = new CancelRecallTask(webClient, recall.getLoanId(), recall.getRecallId());
+				CancelRecallTask cancelRecallTask = new CancelRecallTask(restWebClient, recall.getLoanId(), recall.getRecallId());
 				Thread taskS = new Thread(cancelRecallTask);
 				taskS.run();
 				try {
@@ -129,17 +134,17 @@ public class LoanRecallConsole extends AbstractConsole {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				refreshRecall(webClient);
+				refreshRecall();
 			}
 		} else {
 			System.out.println("Unknown command");
 		}
 	}
 
-	private void refreshRecall(WebClient webClient) {
+	private void refreshRecall() {
 
 		System.out.print("Refreshing recall " + recall.getRecallId() + "...");
-		SearchLoanRecallTask searchLoanRecallTask = new SearchLoanRecallTask(webClient, loan.getLoanId(),
+		SearchLoanRecallTask searchLoanRecallTask = new SearchLoanRecallTask(restWebClient, loan.getLoanId(),
 				recall.getRecallId());
 		Thread taskT = new Thread(searchLoanRecallTask);
 		taskT.run();

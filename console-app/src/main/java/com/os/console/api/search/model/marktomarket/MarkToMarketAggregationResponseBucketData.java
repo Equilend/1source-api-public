@@ -1,4 +1,6 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
+
+import com.os.console.api.search.model.AggregationResponseBucketValue;
 
 public class MarkToMarketAggregationResponseBucketData {
 	private String key;

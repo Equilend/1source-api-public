@@ -6,12 +6,13 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.EventType;
 import com.os.client.model.Loan;
 import com.os.client.model.SettlementInstructionUpdate;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveLoanTask;
 import com.os.console.api.tasks.CancelLoanTask;
 import com.os.console.api.tasks.CancelPendingLoanTask;
@@ -34,6 +35,9 @@ public class LoanConsole extends AbstractConsole {
 
 	Loan loan;
 
+	@Autowired
+	WebClient restWebClient;
+
 	public LoanConsole(Loan loan) {
 		this.loan = loan;
 	}
@@ -45,20 +49,20 @@ public class LoanConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + " > ");
 
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 			ConsoleOutputUtil.printObject(loan);
 		} else if (args[0].equals("F")) {
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("H")) {
 			System.out.print("Listing full history...");
-			SearchLoanHistoryTask searchLoanHistoryTask = new SearchLoanHistoryTask(webClient, loan);
+			SearchLoanHistoryTask searchLoanHistoryTask = new SearchLoanHistoryTask(restWebClient, loan);
 			Thread taskT = new Thread(searchLoanHistoryTask);
 			taskT.run();
 			try {
@@ -68,7 +72,7 @@ public class LoanConsole extends AbstractConsole {
 			}
 		} else if (args[0].equals("Y")) {
 			System.out.print("Listing rate change history...");
-			SearchLoanRateHistoryTask searchLoanRateHistoryTask = new SearchLoanRateHistoryTask(webClient, loan);
+			SearchLoanRateHistoryTask searchLoanRateHistoryTask = new SearchLoanRateHistoryTask(restWebClient, loan);
 			Thread taskT = new Thread(searchLoanRateHistoryTask);
 			taskT.run();
 			try {
@@ -108,13 +112,13 @@ public class LoanConsole extends AbstractConsole {
 								if (eventType == null) {
 									System.out.println("Invalid Event Type");
 								} else {
-									searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, days, eventType);
+									searchLoanEventsTask = new SearchLoanEventsTask(restWebClient, loan, days, eventType);
 								}
 							} catch (Exception u) {
 								System.out.println("Invalid Event Type");
 							}
 						} else {
-							searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, days, null);
+							searchLoanEventsTask = new SearchLoanEventsTask(restWebClient, loan, days, null);
 						}
 					} else {
 						System.out.println("Invalid Days value. Maximum is 60.");
@@ -124,7 +128,7 @@ public class LoanConsole extends AbstractConsole {
 				}
 
 			} else {
-				searchLoanEventsTask = new SearchLoanEventsTask(webClient, loan, null, null);
+				searchLoanEventsTask = new SearchLoanEventsTask(restWebClient, loan, null, null);
 			}
 
 			if (searchLoanEventsTask != null) {
@@ -143,7 +147,7 @@ public class LoanConsole extends AbstractConsole {
 		} else if (args[0].equals("A")) {
 
 			System.out.print("Approving loan...");
-			ApproveLoanTask approveLoanTask = new ApproveLoanTask(webClient, loan,
+			ApproveLoanTask approveLoanTask = new ApproveLoanTask(restWebClient, loan,
 					PayloadUtil.createLoanProposalApproval());
 			Thread taskT = new Thread(approveLoanTask);
 			taskT.run();
@@ -152,10 +156,10 @@ public class LoanConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("C")) {
 			System.out.print("Canceling loan...");
-			CancelLoanTask cancelLoanTask = new CancelLoanTask(webClient, loan.getLoanId(), PayloadUtil.createLoanCancelErrorResponse());
+			CancelLoanTask cancelLoanTask = new CancelLoanTask(restWebClient, loan.getLoanId(), PayloadUtil.createLoanCancelErrorResponse());
 			Thread taskT = new Thread(cancelLoanTask);
 			taskT.run();
 			try {
@@ -163,10 +167,10 @@ public class LoanConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("N")) {
 			System.out.print("Canceling Pending loan...");
-			CancelPendingLoanTask cancelPendingLoanTask = new CancelPendingLoanTask(webClient, loan.getLoanId());
+			CancelPendingLoanTask cancelPendingLoanTask = new CancelPendingLoanTask(restWebClient, loan.getLoanId());
 			Thread taskT = new Thread(cancelPendingLoanTask);
 			taskT.run();
 			try {
@@ -174,10 +178,10 @@ public class LoanConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("D")) {
 			System.out.print("Declining loan...");
-			DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loan.getLoanId(), PayloadUtil.createLoanDeclineErrorResponse(loan));
+			DeclineLoanTask declineLoanTask = new DeclineLoanTask(restWebClient, loan.getLoanId(), PayloadUtil.createLoanDeclineErrorResponse(loan));
 			Thread taskT = new Thread(declineLoanTask);
 			taskT.run();
 			try {
@@ -185,7 +189,7 @@ public class LoanConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("L")) {
 			if (args.length != 2) {
 				System.out.println("Add quantity splits as x,y,z");
@@ -204,8 +208,8 @@ public class LoanConsole extends AbstractConsole {
 					try {
 
 						System.out.print("Splitting loan...");
-						ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(webClient, loan,
-								PayloadUtil.createLoanSplitProposal(quantitySplits), ConsoleConfig.ACTING_PARTY);
+						ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(restWebClient, loan,
+								PayloadUtil.createLoanSplitProposal(quantitySplits), ApplicationConfig.ACTING_PARTY);
 						Thread taskU = new Thread(proposeLoanSplitTask);
 						taskU.run();
 						try {
@@ -229,7 +233,7 @@ public class LoanConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(splitId).toString().equals(splitId)) {
 						System.out.print("Retrieving split proposal " + splitId + "...");
-						SearchLoanSplitTask searchLoanSplitTask = new SearchLoanSplitTask(webClient, loan.getLoanId(),
+						SearchLoanSplitTask searchLoanSplitTask = new SearchLoanSplitTask(restWebClient, loan.getLoanId(),
 								splitId);
 						Thread taskT = new Thread(searchLoanSplitTask);
 						taskT.run();
@@ -241,7 +245,7 @@ public class LoanConsole extends AbstractConsole {
 						if (searchLoanSplitTask.getLoanSplit() != null) {
 							LoanSplitConsole loanSplitConsole = new LoanSplitConsole(loan,
 									searchLoanSplitTask.getLoanSplit());
-							loanSplitConsole.execute(consoleIn, webClient);
+							loanSplitConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -253,8 +257,8 @@ public class LoanConsole extends AbstractConsole {
 		} else if (args[0].equals("U")) {
 			System.out.print("Updating settlement status to SETTLED...");
 
-			UpdateLoanSettlementStatusTask updateSettlementStatusTask = new UpdateLoanSettlementStatusTask(webClient,
-					loan, ConsoleConfig.ACTING_PARTY);
+			UpdateLoanSettlementStatusTask updateSettlementStatusTask = new UpdateLoanSettlementStatusTask(restWebClient,
+					loan, ApplicationConfig.ACTING_PARTY);
 			Thread taskT = new Thread(updateSettlementStatusTask);
 			taskT.run();
 			try {
@@ -263,7 +267,7 @@ public class LoanConsole extends AbstractConsole {
 				e.printStackTrace();
 			}
 
-			refreshLoan(webClient);
+			refreshLoan();
 		} else if (args[0].equals("I")) {
 			if (args.length != 2 || args[1].length() == 0 || args[1].length() > 50) {
 				System.out.println("Invalid internal reference id");
@@ -272,7 +276,7 @@ public class LoanConsole extends AbstractConsole {
 				try {
 					System.out.print("Assigning internal reference id " + internalRefId + "...");
 					UpdateLoanInternalReferenceTask updateLoanInternalReferenceTask = new UpdateLoanInternalReferenceTask(
-							webClient, loan.getLoanId(), internalRefId);
+							restWebClient, loan.getLoanId(), internalRefId);
 					Thread taskT = new Thread(updateLoanInternalReferenceTask);
 					taskT.run();
 					try {
@@ -280,7 +284,7 @@ public class LoanConsole extends AbstractConsole {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					refreshLoan(webClient);
+					refreshLoan();
 				} catch (Exception u) {
 					System.out.println("Invalid internal reference id");
 				}
@@ -297,7 +301,7 @@ public class LoanConsole extends AbstractConsole {
 					SettlementInstructionUpdate settlementInstructionUpdate = PayloadUtil
 							.createSettlementInstructionUpdate(loan, dtcParticipantNumber);
 					UpdateLoanSettlementInstructionTask updateLoanSettlementInstructionTask = new UpdateLoanSettlementInstructionTask(
-							webClient, loan.getLoanId(), settlementInstructionUpdate);
+							restWebClient, loan.getLoanId(), settlementInstructionUpdate);
 					Thread taskT = new Thread(updateLoanSettlementInstructionTask);
 					taskT.run();
 					try {
@@ -305,29 +309,29 @@ public class LoanConsole extends AbstractConsole {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					refreshLoan(webClient);
+					refreshLoan();
 				} catch (Exception u) {
 					System.out.println("Invalid internal reference id");
 				}
 			}
 		} else if (args[0].equals("R")) {
 			LoanReturnsConsole loanReturnsConsole = new LoanReturnsConsole(loan);
-			loanReturnsConsole.execute(consoleIn, webClient);
+			loanReturnsConsole.execute(consoleIn);
 		} else if (args[0].equals("E")) {
 			LoanRecallsConsole loanRecallsConsole = new LoanRecallsConsole(loan);
-			loanRecallsConsole.execute(consoleIn, webClient);
+			loanRecallsConsole.execute(consoleIn);
 		} else if (args[0].equals("T")) {
 			LoanReratesConsole loanReratesConsole = new LoanReratesConsole(loan);
-			loanReratesConsole.execute(consoleIn, webClient);
+			loanReratesConsole.execute(consoleIn);
 		} else {
 			System.out.println("Unknown command");
 		}
 	}
 
-	private void refreshLoan(WebClient webClient) {
+	private void refreshLoan() {
 
 		System.out.print("Refreshing loan " + loan.getLoanId() + "...");
-		SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loan.getLoanId());
+		SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loan.getLoanId());
 		Thread taskT = new Thread(searchLoanTask);
 		taskT.run();
 		try {

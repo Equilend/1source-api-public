@@ -4,6 +4,7 @@ public class IndexData {
 	private String _index;
 	private String _id;
 	private float _score;
+	IndexSource _source;
 
 	public String get_index() {
 		return _index;

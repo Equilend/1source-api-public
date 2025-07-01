@@ -3,11 +3,12 @@ package com.os.console;
 import java.io.BufferedReader;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Loan;
 import com.os.client.model.RecallProposal;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.CancelRecallTask;
 import com.os.console.api.tasks.ProposeRecallTask;
 import com.os.console.api.tasks.SearchLoanRecallTask;
@@ -18,6 +19,9 @@ import com.os.console.util.PayloadUtil;
 public class LoanRecallsConsole extends AbstractConsole {
 
 	Loan loan;
+
+	@Autowired
+	WebClient restWebClient;
 
 	public LoanRecallsConsole(Loan loan) {
 		this.loan = loan;
@@ -30,14 +34,14 @@ public class LoanRecallsConsole extends AbstractConsole {
 			return false;
 		}
 		
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/recalls > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/recalls > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 		if (args[0].equals("I")) {
 			System.out.print("Listing all recalls...");
-			SearchLoanRecallsTask searchLoanRecallsTask = new SearchLoanRecallsTask(webClient, loan);
+			SearchLoanRecallsTask searchLoanRecallsTask = new SearchLoanRecallsTask(restWebClient, loan);
 			Thread taskT = new Thread(searchLoanRecallsTask);
 			taskT.run();
 			try {
@@ -53,7 +57,7 @@ public class LoanRecallsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(recallId).toString().equals(recallId)) {
 						System.out.print("Retrieving recall " + recallId + "...");
-						SearchLoanRecallTask searchLoanRecallTask = new SearchLoanRecallTask(webClient,
+						SearchLoanRecallTask searchLoanRecallTask = new SearchLoanRecallTask(restWebClient,
 								loan.getLoanId(), recallId);
 						Thread taskT = new Thread(searchLoanRecallTask);
 						taskT.run();
@@ -65,7 +69,7 @@ public class LoanRecallsConsole extends AbstractConsole {
 						if (searchLoanRecallTask.getRecall() != null) {
 							LoanRecallConsole loanRecallConsole = new LoanRecallConsole(loan,
 									searchLoanRecallTask.getRecall());
-							loanRecallConsole.execute(consoleIn, webClient);
+							loanRecallConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -86,8 +90,8 @@ public class LoanRecallsConsole extends AbstractConsole {
 
 					ConsoleOutputUtil.printObject(recallProposal);
 
-					ProposeRecallTask proposeRecallTask = new ProposeRecallTask(webClient, loan, recallProposal,
-							ConsoleConfig.ACTING_PARTY);
+					ProposeRecallTask proposeRecallTask = new ProposeRecallTask(restWebClient, loan, recallProposal,
+							ApplicationConfig.ACTING_PARTY);
 					Thread taskT = new Thread(proposeRecallTask);
 					taskT.run();
 					try {
@@ -107,7 +111,7 @@ public class LoanRecallsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(recallId).toString().equals(recallId)) {
 						System.out.print("Cancelling recall " + recallId + "...");
-						CancelRecallTask cancelRecallTask = new CancelRecallTask(webClient, loan.getLoanId(),
+						CancelRecallTask cancelRecallTask = new CancelRecallTask(restWebClient, loan.getLoanId(),
 								recallId);
 						Thread taskT = new Thread(cancelRecallTask);
 						taskT.run();

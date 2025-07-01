@@ -9,11 +9,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.os.client.model.LoanStatus;
 import com.os.client.model.Party;
 import com.os.client.model.PartyRole;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ApproveLoanTask;
 import com.os.console.api.tasks.CancelLoanTask;
 import com.os.console.api.tasks.CancelPendingLoanTask;
 import com.os.console.api.tasks.DeclineLoanTask;
+import com.os.console.api.tasks.OpenSearchQueryTask;
 import com.os.console.api.tasks.ProposeLoanSplitTask;
 import com.os.console.api.tasks.SearchLoanHistoryTask;
 import com.os.console.api.tasks.SearchLoanMarksTask;
@@ -22,20 +23,25 @@ import com.os.console.api.tasks.SearchLoanTask;
 import com.os.console.api.tasks.SearchLoansTask;
 import com.os.console.api.tasks.SearchPartyTask;
 import com.os.console.api.tasks.UpdateLoanSettlementStatusTask;
+import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.PayloadUtil;
 
 public class LoansConsole extends AbstractConsole {
 
-	public LoansConsole() {
-
+	private WebClient restWebClient;
+	private WebClient ledgerSearchWebClient;
+	
+	public LoansConsole(WebClient restWebClient, WebClient ledgerSearchWebClient) {
+		this.restWebClient = restWebClient;
+		this.ledgerSearchWebClient = ledgerSearchWebClient;
 	}
 
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			LoanStatus loanStatus = null;
@@ -43,13 +49,39 @@ public class LoansConsole extends AbstractConsole {
 				loanStatus = LoanStatus.fromValue(args[1].toUpperCase());
 			}
 			System.out.print("Listing all " + (loanStatus != null ? (loanStatus.getValue() + " ") : "") + "loans...");
-			SearchLoansTask searchLoansTask = new SearchLoansTask(webClient, loanStatus, null);
+			SearchLoansTask searchLoansTask = new SearchLoansTask(restWebClient, loanStatus, null);
 			Thread taskT = new Thread(searchLoansTask);
 			taskT.run();
 			try {
 				taskT.join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}
+		} else if (args[0].equals("J")) {
+			if (args.length != 2 || args[1].length() != 36) {
+				System.out.println("Invalid UUID");
+			} else {
+				String loanId = args[1].toLowerCase();
+				try {
+					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
+						System.out.print("Searching for loan " + loanId + "...");
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
+						Thread taskT = new Thread(searchLoanTask);
+						taskT.run();
+						try {
+							taskT.join();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						if (searchLoanTask.getLoan() != null) {
+							ConsoleOutputUtil.printObject(searchLoanTask.getLoan());
+						}
+					} else {
+						System.out.println("Invalid UUID");
+					}
+				} catch (Exception u) {
+					System.out.println("Invalid UUID");
+				}
 			}
 		} else if (args[0].equals("S")) {
 			if (args.length != 2 || args[1].length() != 36) {
@@ -59,7 +91,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Searching for loan " + loanId + "...");
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -69,13 +101,29 @@ public class LoansConsole extends AbstractConsole {
 						}
 						if (searchLoanTask.getLoan() != null) {
 							LoanConsole loanConsole = new LoanConsole(searchLoanTask.getLoan());
-							loanConsole.execute(consoleIn, webClient);
+							loanConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
 					}
 				} catch (Exception u) {
 					System.out.println("Invalid UUID");
+				}
+			}
+		} else if (args[0].equals("R")) {
+			if (args.length != 2 || args[1].trim().length() == 0 || args[1].length() > 100) {
+				System.out.println("Invalid Internal Ref ID");
+			} else {
+				String internalRefId = args[1].toLowerCase();
+				System.out.print("Searching with Internal Reference " + internalRefId + "...");
+				OpenSearchQueryTask searchLoansInternalRefTask = new OpenSearchQueryTask(ledgerSearchWebClient,
+						PayloadUtil.createInternalRefIdQuery(internalRefId));
+				Thread taskS = new Thread(searchLoansInternalRefTask);
+				taskS.run();
+				try {
+					taskS.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		} else if (args[0].equals("H")) {
@@ -86,7 +134,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Searching for loan " + loanId + "...");
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -96,7 +144,7 @@ public class LoansConsole extends AbstractConsole {
 						}
 						if (searchLoanTask.getLoan() != null) {
 							System.out.print("Listing loan full history " + loanId + "...");
-							SearchLoanHistoryTask searchLoanHistoryTask = new SearchLoanHistoryTask(webClient,
+							SearchLoanHistoryTask searchLoanHistoryTask = new SearchLoanHistoryTask(restWebClient,
 									searchLoanTask.getLoan());
 							Thread taskS = new Thread(searchLoanHistoryTask);
 							taskS.run();
@@ -121,7 +169,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Searching for loan " + loanId + "...");
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -132,7 +180,7 @@ public class LoansConsole extends AbstractConsole {
 						if (searchLoanTask.getLoan() != null) {
 							System.out.print("Listing loan rate change history " + loanId + "...");
 							SearchLoanRateHistoryTask searchLoanRateHistoryTask = new SearchLoanRateHistoryTask(
-									webClient, searchLoanTask.getLoan());
+									restWebClient, searchLoanTask.getLoan());
 							Thread taskS = new Thread(searchLoanRateHistoryTask);
 							taskS.run();
 							try {
@@ -156,7 +204,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Searching for loan " + loanId + "...");
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -166,7 +214,7 @@ public class LoansConsole extends AbstractConsole {
 						}
 						if (searchLoanTask.getLoan() != null) {
 							System.out.print("Approving loan " + loanId + "...");
-							ApproveLoanTask approveLoanTask = new ApproveLoanTask(webClient, searchLoanTask.getLoan(),
+							ApproveLoanTask approveLoanTask = new ApproveLoanTask(restWebClient, searchLoanTask.getLoan(),
 									PayloadUtil.createLoanProposalApproval());
 							Thread taskS = new Thread(approveLoanTask);
 							taskS.run();
@@ -191,7 +239,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Canceling loan " + loanId + "...");
-						CancelLoanTask cancelLoanTask = new CancelLoanTask(webClient, loanId,
+						CancelLoanTask cancelLoanTask = new CancelLoanTask(restWebClient, loanId,
 								PayloadUtil.createLoanCancelErrorResponse());
 						Thread taskT = new Thread(cancelLoanTask);
 						taskT.run();
@@ -215,7 +263,7 @@ public class LoansConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Canceling pending loan " + loanId + "...");
-						CancelPendingLoanTask cancelPendingLoanTask = new CancelPendingLoanTask(webClient, loanId);
+						CancelPendingLoanTask cancelPendingLoanTask = new CancelPendingLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(cancelPendingLoanTask);
 						taskT.run();
 						try {
@@ -239,7 +287,7 @@ public class LoansConsole extends AbstractConsole {
 					if (UUID.fromString(loanId).toString().equalsIgnoreCase(loanId)) {
 						System.out.print("Declining loan " + loanId + "...");
 
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -250,7 +298,7 @@ public class LoansConsole extends AbstractConsole {
 
 						if (searchLoanTask.getLoan() != null) {
 
-							DeclineLoanTask declineLoanTask = new DeclineLoanTask(webClient, loanId,
+							DeclineLoanTask declineLoanTask = new DeclineLoanTask(restWebClient, loanId,
 									PayloadUtil.createLoanDeclineErrorResponse(searchLoanTask.getLoan()));
 							Thread taskD = new Thread(declineLoanTask);
 							taskD.run();
@@ -290,7 +338,7 @@ public class LoansConsole extends AbstractConsole {
 
 								System.out.print("Retrieving loan " + loanId + "...");
 
-								SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+								SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 								Thread taskT = new Thread(searchLoanTask);
 								taskT.run();
 								try {
@@ -302,10 +350,10 @@ public class LoansConsole extends AbstractConsole {
 								if (searchLoanTask.getLoan() != null) {
 
 									System.out.print("Splitting loan " + loanId + "...");
-									ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(webClient,
+									ProposeLoanSplitTask proposeLoanSplitTask = new ProposeLoanSplitTask(restWebClient,
 											searchLoanTask.getLoan(),
 											PayloadUtil.createLoanSplitProposal(quantitySplits),
-											ConsoleConfig.ACTING_PARTY);
+											ApplicationConfig.ACTING_PARTY);
 									Thread taskU = new Thread(proposeLoanSplitTask);
 									taskU.run();
 									try {
@@ -338,7 +386,7 @@ public class LoansConsole extends AbstractConsole {
 
 						System.out.print("Retrieving loan " + loanId + "...");
 
-						SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, loanId);
+						SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, loanId);
 						Thread taskT = new Thread(searchLoanTask);
 						taskT.run();
 						try {
@@ -350,7 +398,7 @@ public class LoansConsole extends AbstractConsole {
 						if (searchLoanTask.getLoan() != null) {
 							System.out.print("Updating loan " + loanId + " settlement status to SETTLED...");
 							UpdateLoanSettlementStatusTask updateSettlementStatusTask = new UpdateLoanSettlementStatusTask(
-									webClient, searchLoanTask.getLoan(), ConsoleConfig.ACTING_PARTY);
+									restWebClient, searchLoanTask.getLoan(), ApplicationConfig.ACTING_PARTY);
 							Thread taskU = new Thread(updateSettlementStatusTask);
 							taskU.run();
 							try {
@@ -369,14 +417,14 @@ public class LoansConsole extends AbstractConsole {
 		} else if (args[0].equals("P")) {
 			if (args.length != 2 || args[1].length() > 30) {
 				System.out.println("Invalid Party Id");
-			} else if (ConsoleConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
+			} else if (ApplicationConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
 				System.out.println("You cannot propose a loan to yourself");
 			} else {
 
 				String partyId = args[1];
 				try {
 					System.out.print("Verifying party " + partyId + "...");
-					SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+					SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, partyId);
 					Thread taskT = new Thread(searchPartyTask);
 					taskT.run();
 					try {
@@ -386,12 +434,12 @@ public class LoansConsole extends AbstractConsole {
 					}
 					if (searchPartyTask.getParty() != null) {
 						LoanProposalConsole loanProposalConsole = new LoanProposalConsole(
-								(PartyRole.BORROWER.equals(ConsoleConfig.ACTING_AS) ? ConsoleConfig.ACTING_PARTY
+								(PartyRole.BORROWER.equals(ApplicationConfig.ACTING_AS) ? ApplicationConfig.ACTING_PARTY
 										: searchPartyTask.getParty()),
-								(PartyRole.LENDER.equals(ConsoleConfig.ACTING_AS) ? ConsoleConfig.ACTING_PARTY
+								(PartyRole.LENDER.equals(ApplicationConfig.ACTING_AS) ? ApplicationConfig.ACTING_PARTY
 										: searchPartyTask.getParty()),
-								ConsoleConfig.ACTING_AS);
-						loanProposalConsole.execute(consoleIn, webClient);
+								ApplicationConfig.ACTING_AS);
+						loanProposalConsole.execute(consoleIn);
 					}
 				} catch (Exception u) {
 					System.out.println("Invalid party id");
@@ -400,14 +448,14 @@ public class LoansConsole extends AbstractConsole {
 		} else if (args[0].equals("F")) {
 			if (args.length != 2 || args[1].length() > 30) {
 				System.out.println("Invalid Party Id");
-			} else if (ConsoleConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
+			} else if (ApplicationConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
 				System.out.println("You are not a counterparty to yourself");
 			} else {
 
 				String partyId = args[1];
 				try {
 					System.out.print("Verifying party " + partyId + "...");
-					SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+					SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, partyId);
 					Thread taskT = new Thread(searchPartyTask);
 					taskT.run();
 					try {
@@ -417,7 +465,7 @@ public class LoansConsole extends AbstractConsole {
 					}
 					if (searchPartyTask.getParty() != null) {
 						System.out.print("Listing all " + searchPartyTask.getParty().getPartyId() + " loans...");
-						SearchLoansTask searchLoansTask = new SearchLoansTask(webClient, null,
+						SearchLoansTask searchLoansTask = new SearchLoansTask(restWebClient, null,
 								searchPartyTask.getParty());
 						Thread taskF = new Thread(searchLoansTask);
 						taskF.run();
@@ -438,12 +486,12 @@ public class LoansConsole extends AbstractConsole {
 			String partyId = null;
 			if (args.length == 2 && args[1].length() <= 30) {
 				partyId = args[1];
-				if (ConsoleConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
+				if (ApplicationConfig.ACTING_PARTY.getPartyId().equals(args[1])) {
 					System.out.println("You are not a counterparty to yourself");
 				} else {
 					try {
 						System.out.print("Verifying party " + partyId + "...");
-						SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, partyId);
+						SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, partyId);
 						Thread taskT = new Thread(searchPartyTask);
 						taskT.run();
 						try {
@@ -468,7 +516,8 @@ public class LoansConsole extends AbstractConsole {
 				} else {
 					System.out.print("Listing all OPEN loans...");
 				}
-				SearchLoanMarksTask searchLoanMarksTask = new SearchLoanMarksTask(webClient, LoanStatus.OPEN, searchParty);
+				SearchLoanMarksTask searchLoanMarksTask = new SearchLoanMarksTask(restWebClient, LoanStatus.OPEN,
+						searchParty);
 				Thread taskF = new Thread(searchLoanMarksTask);
 				taskF.run();
 				try {
@@ -491,8 +540,12 @@ public class LoansConsole extends AbstractConsole {
 		System.out.println("-----------------------");
 		System.out.println("I <Loan Status>      - List all loans");
 		System.out.println("F <Party ID>         - List all loans with a counterparty");
+		System.out.println("R <Internal Ref ID>  - List all loans with Internal Ref ID");
+		System.out.println("V <Venue Ref Key>    - List all loans with Venue Ref Key");
+		System.out.println();
 		System.out.println("M <Party ID>         - List current marks for OPEN loans with optional counterparty");
 		System.out.println();
+		System.out.println("J <Loan Id>          - Print JSON for loan by Id");
 		System.out.println("S <Loan Id>          - Search a loan by Id");
 		System.out.println("H <Loan Id>          - Show full history for loan Id");
 		System.out.println("Y <Loan Id>          - Show rate change history for loan Id");

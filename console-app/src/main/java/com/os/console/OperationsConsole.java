@@ -1,24 +1,29 @@
 package com.os.console;
 
 import java.io.BufferedReader;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.CurrencyCd;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ReportMarkToMarketTask;
 
 public class OperationsConsole extends AbstractConsole {
+
+	@Autowired
+	WebClient ledgerSearchWebClient;
 
 	public OperationsConsole() {
 
 	}
 
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /operations > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /operations > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("M")) {
 
@@ -33,7 +38,7 @@ public class OperationsConsole extends AbstractConsole {
 			} else {
 				try {
 					System.out.print("Generating Mark to Market report for " + currencyCd.getValue() + "...");
-					ReportMarkToMarketTask reportMarkToMarketTask = new ReportMarkToMarketTask(webClient, currencyCd);
+					ReportMarkToMarketTask reportMarkToMarketTask = new ReportMarkToMarketTask(ledgerSearchWebClient, currencyCd);
 					Thread taskF = new Thread(reportMarkToMarketTask);
 					taskF.run();
 					try {

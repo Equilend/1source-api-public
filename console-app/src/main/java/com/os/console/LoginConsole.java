@@ -11,7 +11,7 @@ import com.os.client.model.PartyRole;
 import com.os.client.model.PartySettlementInstruction;
 import com.os.client.model.SettlementInstruction;
 import com.os.client.model.SettlementStatus;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.AuthTask;
 import com.os.console.api.tasks.SearchPartyTask;
 
@@ -19,7 +19,13 @@ public class LoginConsole {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginConsole.class);
 
-	public void login(ConsoleConfig authConfig, WebClient webClient, BufferedReader consoleIn) {
+	private WebClient restWebClient;
+	
+	public LoginConsole(WebClient restWebClient) {
+		this.restWebClient = restWebClient;
+	}
+	
+	public void login(ApplicationConfig authConfig, BufferedReader consoleIn) {
 
 		try {
 
@@ -68,7 +74,7 @@ public class LoginConsole {
 			taskT.run();
 			try {
 				taskT.join();
-				if (ConsoleConfig.TOKEN != null) {
+				if (ApplicationConfig.TOKEN != null) {
 					System.out.println("...success");
 				} else {
 					System.out.println("...invalid username and/or password");
@@ -84,30 +90,30 @@ public class LoginConsole {
 
 			PartyRole actingAs = PartyRole.fromValue(authConfig.getAuth_actAs());
 			if (actingAs != null) {
-				ConsoleConfig.ACTING_AS = actingAs;
-				System.out.println(ConsoleConfig.ACTING_AS);
+				ApplicationConfig.ACTING_AS = actingAs;
+				System.out.println(ApplicationConfig.ACTING_AS);
 			} else {
 				System.out.println("act as not set properly");
 				return;
 			}
 
-			if (PartyRole.VENUE.equals(ConsoleConfig.ACTING_AS)) {
+			if (PartyRole.VENUE.equals(ApplicationConfig.ACTING_AS)) {
 				Party venueParty = new Party();
 				venueParty.setPartyId(authConfig.getAuth_party());
 				venueParty.setPartyName("Venue " + authConfig.getAuth_party());
 				venueParty.setGleifLei("213800BN4DRR1ADYGP92");
-				ConsoleConfig.ACTING_PARTY = venueParty;
+				ApplicationConfig.ACTING_PARTY = venueParty;
 				System.out.println("TODO - Authorize venue party");
 			} else {
 				System.out.print("Authorizing " + authConfig.getAuth_party() + "...");
 
-				SearchPartyTask searchPartyTask = new SearchPartyTask(webClient, authConfig.getAuth_party());
+				SearchPartyTask searchPartyTask = new SearchPartyTask(restWebClient, authConfig.getAuth_party());
 				taskT = new Thread(searchPartyTask);
 				taskT.run();
 				try {
 					taskT.join();
 					if (searchPartyTask.getParty() != null) {
-						ConsoleConfig.ACTING_PARTY = searchPartyTask.getParty();
+						ApplicationConfig.ACTING_PARTY = searchPartyTask.getParty();
 					} else {
 						System.out.println("acting party not recognized");
 						return;
@@ -118,7 +124,7 @@ public class LoginConsole {
 			}
 
 			PartySettlementInstruction partySettlementInstruction = new PartySettlementInstruction();
-			partySettlementInstruction.setPartyRole(ConsoleConfig.ACTING_AS);
+			partySettlementInstruction.setPartyRole(ApplicationConfig.ACTING_AS);
 			partySettlementInstruction.setSettlementStatus(SettlementStatus.NONE);
 			partySettlementInstruction.setInternalAccountCode(authConfig.getSettlement_internalAcctCd());
 
@@ -133,7 +139,7 @@ public class LoginConsole {
 			instruction.setCustodianAccount(authConfig.getSettlement_custodianAcct());
 			instruction.setDtcParticipantNumber(authConfig.getSettlement_dtcParticipantNumber());
 			
-			ConsoleConfig.SETTLEMENT_INSTRUCTIONS = partySettlementInstruction;
+			ApplicationConfig.SETTLEMENT_INSTRUCTIONS = partySettlementInstruction;
 
 			PartySettlementInstruction counterpartySettlementInstruction = new PartySettlementInstruction();
 			counterpartySettlementInstruction.setPartyRole(PartyRole.BORROWER.equals(partySettlementInstruction.getPartyRole()) ? PartyRole.LENDER : PartyRole.BORROWER);
@@ -175,7 +181,7 @@ public class LoginConsole {
 				counterpartyInstruction.setDtcParticipantNumber(authConfig.getCounterparty_settlement_dtcParticipantNumber());
 			}
 			
-			ConsoleConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS = counterpartySettlementInstruction;
+			ApplicationConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS = counterpartySettlementInstruction;
 
 		} catch (Exception e) {
 			System.out.println("Error during login");

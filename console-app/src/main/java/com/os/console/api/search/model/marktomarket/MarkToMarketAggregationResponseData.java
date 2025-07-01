@@ -1,6 +1,8 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
 
 import java.util.ArrayList;
+
+import com.os.console.api.search.model.AggregationData;
 
 public class MarkToMarketAggregationResponseData extends AggregationData {
 

@@ -4,13 +4,14 @@ import java.io.BufferedReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.AcknowledgementType;
 import com.os.client.model.Loan;
 import com.os.client.model.ModelReturn;
 import com.os.client.model.ReturnAcknowledgement;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.AcknowledgeReturnTask;
 import com.os.console.api.tasks.CancelReturnTask;
 import com.os.console.api.tasks.SearchLoanReturnTask;
@@ -22,6 +23,9 @@ import com.os.console.util.PayloadUtil;
 public class LoanReturnConsole extends AbstractConsole {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoanReturnConsole.class);
+
+	@Autowired
+	WebClient restWebClient;
 
 	Loan loan;
 	ModelReturn modelReturn;
@@ -41,12 +45,12 @@ public class LoanReturnConsole extends AbstractConsole {
 			return false;
 		}
 
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/returns/" + modelReturn.getReturnId() + " > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/" + loan.getLoanId() + "/returns/" + modelReturn.getReturnId() + " > ");
 		
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("J")) {
 
@@ -69,7 +73,7 @@ public class LoanReturnConsole extends AbstractConsole {
 
 				ConsoleOutputUtil.printObject(returnAcknowledgement);
 
-				AcknowledgeReturnTask acknowledgeReturnTask = new AcknowledgeReturnTask(webClient, modelReturn,
+				AcknowledgeReturnTask acknowledgeReturnTask = new AcknowledgeReturnTask(restWebClient, modelReturn,
 						returnAcknowledgement);
 				Thread taskT = new Thread(acknowledgeReturnTask);
 				taskT.run();
@@ -98,7 +102,7 @@ public class LoanReturnConsole extends AbstractConsole {
 
 				ConsoleOutputUtil.printObject(returnAcknowledgement);
 
-				AcknowledgeReturnTask acknowledgeReturnTask = new AcknowledgeReturnTask(webClient, modelReturn,
+				AcknowledgeReturnTask acknowledgeReturnTask = new AcknowledgeReturnTask(restWebClient, modelReturn,
 						returnAcknowledgement);
 				
 				Thread taskT = new Thread(acknowledgeReturnTask);
@@ -114,7 +118,7 @@ public class LoanReturnConsole extends AbstractConsole {
 		} else if (args[0].equals("C")) {
 			System.out.print("Searching for loan " + modelReturn.getLoanId() + "...");
 
-			SearchLoanTask searchLoanTask = new SearchLoanTask(webClient, modelReturn.getLoanId());
+			SearchLoanTask searchLoanTask = new SearchLoanTask(restWebClient, modelReturn.getLoanId());
 			Thread taskT = new Thread(searchLoanTask);
 			taskT.run();
 			try {
@@ -125,7 +129,7 @@ public class LoanReturnConsole extends AbstractConsole {
 
 			if (searchLoanTask.getLoan() != null) {
 				System.out.print("Canceling return...");
-				CancelReturnTask cancelReturnTask = new CancelReturnTask(webClient, modelReturn.getLoanId(), modelReturn.getReturnId());
+				CancelReturnTask cancelReturnTask = new CancelReturnTask(restWebClient, modelReturn.getLoanId(), modelReturn.getReturnId());
 				Thread taskS = new Thread(cancelReturnTask);
 				taskS.run();
 				try {
@@ -133,12 +137,12 @@ public class LoanReturnConsole extends AbstractConsole {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				refreshModelReturn(webClient);
+				refreshModelReturn();
 			}
 		} else if (args[0].equals("U")) {
 			System.out.print("Updating settlement status to SETTLED...");
 			UpdateReturnSettlementStatusTask updateReturnSettlementStatusTask = new UpdateReturnSettlementStatusTask(
-					webClient, loan, modelReturn, ConsoleConfig.ACTING_PARTY);
+					restWebClient, loan, modelReturn, ApplicationConfig.ACTING_PARTY);
 			Thread taskT = new Thread(updateReturnSettlementStatusTask);
 			taskT.run();
 			try {
@@ -146,16 +150,16 @@ public class LoanReturnConsole extends AbstractConsole {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			refreshModelReturn(webClient);
+			refreshModelReturn();
 		} else {
 			System.out.println("Unknown command");
 		}
 	}
 
-	private void refreshModelReturn(WebClient webClient) {
+	private void refreshModelReturn() {
 
 		System.out.print("Refreshing return " + modelReturn.getReturnId() + "...");
-		SearchLoanReturnTask searchLoanReturnTask = new SearchLoanReturnTask(webClient, loan,
+		SearchLoanReturnTask searchLoanReturnTask = new SearchLoanReturnTask(restWebClient, loan,
 				modelReturn.getReturnId());
 		Thread taskT = new Thread(searchLoanReturnTask);
 		taskT.run();

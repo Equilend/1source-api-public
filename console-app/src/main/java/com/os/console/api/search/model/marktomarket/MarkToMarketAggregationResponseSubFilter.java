@@ -1,4 +1,6 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
+
+import com.os.console.api.search.model.Aggregation;
 
 public class MarkToMarketAggregationResponseSubFilter extends Aggregation {
 	MarkToMarketAggregationResponseData total_mark_today;

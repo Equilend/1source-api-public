@@ -6,7 +6,7 @@ import com.os.client.model.Loan;
 import com.os.client.model.LoanProposalApproval;
 import com.os.client.model.TransactingParties;
 import com.os.client.model.TransactingParty;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.util.RESTUtil;
 
 public class ApproveLoanTask implements Runnable {
@@ -27,7 +27,7 @@ public class ApproveLoanTask implements Runnable {
 		TransactingParties parties = loan.getTrade().getTransactingParties();
 		boolean canAct = false;
 		for (TransactingParty transactingParty : parties) {
-			if (ConsoleConfig.ACTING_PARTY.equals(transactingParty.getParty())) {
+			if (ApplicationConfig.ACTING_PARTY.equals(transactingParty.getParty())) {
 				canAct = true;
 				break;
 			}

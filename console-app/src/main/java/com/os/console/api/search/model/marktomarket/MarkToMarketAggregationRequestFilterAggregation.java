@@ -1,4 +1,4 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
 
 public class MarkToMarketAggregationRequestFilterAggregation {
 	MarkToMarketAggregationRequestFilterAggregationDef total_mark_today;

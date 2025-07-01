@@ -3,26 +3,30 @@ package com.os.console;
 import java.io.BufferedReader;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Recall;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.CancelRecallTask;
 import com.os.console.api.tasks.SearchRecallTask;
 import com.os.console.api.tasks.SearchRecallsTask;
 
 public class RecallsConsole extends AbstractConsole {
 
+	@Autowired
+	WebClient restWebClient;
+	
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /recalls > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /recalls > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("I")) {
 			System.out.print("Listing all recalls...");
-			SearchRecallsTask searchRecallsTask = new SearchRecallsTask(webClient);
+			SearchRecallsTask searchRecallsTask = new SearchRecallsTask(restWebClient);
 			Thread taskT = new Thread(searchRecallsTask);
 			taskT.run();
 			try {
@@ -38,7 +42,7 @@ public class RecallsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(recallId).toString().equals(recallId)) {
 						System.out.print("Retrieving recall " + recallId + "...");
-						SearchRecallTask searchRecallTask = new SearchRecallTask(webClient, recallId);
+						SearchRecallTask searchRecallTask = new SearchRecallTask(restWebClient, recallId);
 						Thread taskT = new Thread(searchRecallTask);
 						taskT.run();
 						try {
@@ -48,7 +52,7 @@ public class RecallsConsole extends AbstractConsole {
 						}
 						if (searchRecallTask.getRecall() != null) {
 							RecallConsole recallConsole = new RecallConsole(searchRecallTask.getRecall());
-							recallConsole.execute(consoleIn, webClient);
+							recallConsole.execute(consoleIn);
 						}
 					} else {
 						System.out.println("Invalid UUID");
@@ -65,7 +69,7 @@ public class RecallsConsole extends AbstractConsole {
 				try {
 					if (UUID.fromString(recallId).toString().equals(recallId)) {
 						System.out.print("Retrieving recall " + recallId + "...");
-						SearchRecallTask searchRecallTask = new SearchRecallTask(webClient, recallId);
+						SearchRecallTask searchRecallTask = new SearchRecallTask(restWebClient, recallId);
 						Thread taskT = new Thread(searchRecallTask);
 						taskT.run();
 						try {
@@ -76,7 +80,7 @@ public class RecallsConsole extends AbstractConsole {
 						if (searchRecallTask.getRecall() != null) {
 							Recall recall = searchRecallTask.getRecall();
 							System.out.print("Canceling recall...");
-							CancelRecallTask cancelRecallTask = new CancelRecallTask(webClient, recall.getLoanId(), recall.getRecallId());
+							CancelRecallTask cancelRecallTask = new CancelRecallTask(restWebClient, recall.getLoanId(), recall.getRecallId());
 							Thread taskS = new Thread(cancelRecallTask);
 							taskS.run();
 							try {

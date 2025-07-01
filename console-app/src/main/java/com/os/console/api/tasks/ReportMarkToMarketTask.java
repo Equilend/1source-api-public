@@ -7,11 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.CurrencyCd;
-import com.os.console.api.search.model.MarkToMarketAggregationResponse;
-import com.os.console.api.search.model.MarkToMarketAggregationResponseBucketData;
-import com.os.console.api.search.model.MarkToMarketAggregationResponseData;
-import com.os.console.api.search.model.MarkToMarketAggregationResponseFilter;
-import com.os.console.api.search.model.MarkToMarketAggregationResponseSubFilter;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationResponse;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationResponseBucketData;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationResponseData;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationResponseFilter;
+import com.os.console.api.search.model.marktomarket.MarkToMarketAggregationResponseSubFilter;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.PayloadUtil;
 import com.os.console.util.RESTUtil;

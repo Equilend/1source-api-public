@@ -2,26 +2,26 @@ package com.os.console;
 
 import java.io.BufferedReader;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Instrument;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.FigiUtil;
 import com.os.console.util.InstrumentUtil;
 
 public class FigiConsole extends AbstractConsole {
 
-	public FigiConsole() {
-
-	}
+	@Autowired
+	WebClient openFigiWebClient;
 
 	protected boolean prompt() {
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /figi > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /figi > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("A")) {
 			if (args.length != 2 || args[1].length() == 0 || args[1].length() > 50) {
@@ -43,7 +43,7 @@ public class FigiConsole extends AbstractConsole {
 			} else {
 				String securityId = args[1];
 				System.out.print("Looking up TICKER " + securityId + "...");
-				FigiUtil.mapFigi(webClient, "TICKER", securityId);
+				FigiUtil.mapFigi(openFigiWebClient, "TICKER", securityId);
 			}
 		} else if (args[0].equals("I")) {
 			if (args.length != 2 || args[1].length() == 0 || args[1].length() > 50) {
@@ -51,7 +51,7 @@ public class FigiConsole extends AbstractConsole {
 			} else {
 				String securityId = args[1];
 				System.out.print("Looking up ISIN " + securityId + "...");
-				FigiUtil.mapFigi(webClient, "ID_ISIN", securityId);
+				FigiUtil.mapFigi(openFigiWebClient, "ID_ISIN", securityId);
 			}
 		} else if (args[0].equals("C")) {
 			if (args.length != 2 || args[1].length() == 0 || args[1].length() > 50) {
@@ -59,7 +59,7 @@ public class FigiConsole extends AbstractConsole {
 			} else {
 				String securityId = args[1];
 				System.out.print("Looking up CUSIP " + securityId + "...");
-				FigiUtil.mapFigi(webClient, "ID_CUSIP", securityId);
+				FigiUtil.mapFigi(openFigiWebClient, "ID_CUSIP", securityId);
 			}
 		} else if (args[0].equals("S")) {
 			if (args.length != 2 || args[1].length() == 0 || args[1].length() > 50) {
@@ -67,7 +67,7 @@ public class FigiConsole extends AbstractConsole {
 			} else {
 				String securityId = args[1];
 				System.out.print("Looking up SEDOL " + securityId + "...");
-				FigiUtil.mapFigi(webClient, "ID_SEDOL", securityId);
+				FigiUtil.mapFigi(openFigiWebClient, "ID_SEDOL", securityId);
 			}
 		} else {
 			System.out.println("Unknown command");

@@ -1,4 +1,4 @@
-package com.os.console.api.search.model;
+package com.os.console.api.search.model.marktomarket;
 
 public class MarkToMarketAggregationRequestFilter {
 	MarkToMarketAggregationRequestFilterDef filtered_sum;

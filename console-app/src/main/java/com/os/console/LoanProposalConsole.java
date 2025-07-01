@@ -1,15 +1,17 @@
 package com.os.console;
 
 import java.io.BufferedReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.os.client.model.Instrument;
 import com.os.client.model.LoanProposal;
 import com.os.client.model.Party;
 import com.os.client.model.PartyRole;
-import com.os.console.api.ConsoleConfig;
+import com.os.console.api.ApplicationConfig;
 import com.os.console.api.tasks.ProposeLoanTask;
 import com.os.console.util.ConsoleOutputUtil;
 import com.os.console.util.InstrumentUtil;
@@ -20,6 +22,9 @@ public class LoanProposalConsole extends AbstractConsole {
 	private static final Logger logger = LoggerFactory.getLogger(LoanProposalConsole.class);
 
 	private LoanProposal loanProposal;
+
+	@Autowired
+	WebClient restWebClient;
 
 	private Party borrowerParty;
 	private Party lenderParty;
@@ -44,11 +49,11 @@ public class LoanProposalConsole extends AbstractConsole {
 			ConsoleOutputUtil.printObject(loanProposal);
 			firstPrompt = false;
 		}
-		System.out.print(ConsoleConfig.ACTING_PARTY.getPartyId() + " /loans/ proposal > ");
+		System.out.print(ApplicationConfig.ACTING_PARTY.getPartyId() + " /loans/ proposal > ");
 		return true;
 	}
 
-	public void handleArgs(String args[], BufferedReader consoleIn, WebClient webClient) {
+	public void handleArgs(String args[], BufferedReader consoleIn) {
 
 		if (args[0].equals("R")) {
 
@@ -67,7 +72,7 @@ public class LoanProposalConsole extends AbstractConsole {
 			loanProposal = PayloadUtil.createLoanProposal(borrowerParty, lenderParty, proposingPartyRole,
 					instrument, minInstrument);
 
-			loanProposal.getSettlement().add(ConsoleConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS);
+			loanProposal.getSettlement().add(ApplicationConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS);
 
 			ConsoleOutputUtil.printObject(loanProposal);
 
@@ -100,7 +105,7 @@ public class LoanProposalConsole extends AbstractConsole {
 				} else {
 					loanProposal = PayloadUtil.createLoanProposal(borrowerParty, lenderParty, proposingPartyRole,
 							instrument, minimizeInstrument(instrument, securityId));
-					loanProposal.getSettlement().add(ConsoleConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS);
+					loanProposal.getSettlement().add(ApplicationConfig.COUNTERPARTY_SETTLEMENT_INSTRUCTIONS);
 					ConsoleOutputUtil.printObject(loanProposal);
 				}
 			}
@@ -108,7 +113,7 @@ public class LoanProposalConsole extends AbstractConsole {
 
 			try {
 				System.out.print("Proposing loan...");
-				ProposeLoanTask proposeLoanTask = new ProposeLoanTask(webClient, loanProposal);
+				ProposeLoanTask proposeLoanTask = new ProposeLoanTask(restWebClient, loanProposal);
 				Thread taskT = new Thread(proposeLoanTask);
 				taskT.run();
 				try {
